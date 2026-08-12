@@ -9,7 +9,7 @@
 */
 
 const OWNER = "alatheesh";
-const REPO = "mycode";
+const REPO = "copy";
 
 
 // GitHub branch
