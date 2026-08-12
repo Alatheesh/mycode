@@ -16,7 +16,7 @@
 */
 
 
-const OWNER = "Alatheesh";
+const OWNER = "alatheesh";
 const REPO = "mycode";
 
 
