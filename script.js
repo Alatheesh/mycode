@@ -2,29 +2,12 @@
     ============================================================
     CONFIGURATION
     ============================================================
-
-    Your GitHub repository:
-
-    https://github.com/alatheesh/mycode
 */
 
 const OWNER = "alatheesh";
 const REPO = "copy";
 
-
-// GitHub branch
 const BRANCH = "main";
-
-
-// Folder to read.
-//
-// "" means the root of the repository.
-//
-// Example:
-// const ROOT_FOLDER = "src";
-//
-// would read files inside:
-// repository/src/
 
 const ROOT_FOLDER = "";
 
@@ -36,23 +19,32 @@ const ROOT_FOLDER = "";
     ============================================================
 */
 
-const fileList = document.getElementById("fileList");
+const fileList =
+    document.getElementById("fileList");
 
-const codeEditor = document.getElementById("codeEditor");
+const codeEditor =
+    document.getElementById("codeEditor");
 
-const lineNumbers = document.getElementById("lineNumbers");
+const lineNumbers =
+    document.getElementById("lineNumbers");
 
-const currentFile = document.getElementById("currentFile");
+const currentFile =
+    document.getElementById("currentFile");
 
-const copyButton = document.getElementById("copyButton");
+const copyButton =
+    document.getElementById("copyButton");
 
-const resetButton = document.getElementById("resetButton");
+const resetButton =
+    document.getElementById("resetButton");
 
-const refreshButton = document.getElementById("refreshButton");
+const refreshButton =
+    document.getElementById("refreshButton");
 
-const statusText = document.getElementById("statusText");
+const statusText =
+    document.getElementById("statusText");
 
-const cursorPosition = document.getElementById("cursorPosition");
+const cursorPosition =
+    document.getElementById("cursorPosition");
 
 
 
@@ -72,6 +64,31 @@ let originalCode = "";
 
 /*
     ============================================================
+    HIDDEN FILES
+    ============================================================
+
+    These files remain in GitHub.
+
+    They are simply not displayed in the explorer.
+*/
+
+const HIDDEN_FILES = [
+    "index.html",
+    "style.css",
+    "script.js",
+
+    "README.md",
+    "README",
+
+    "LICENSE",
+    "LICENSE.md",
+    "LICENSE.txt"
+];
+
+
+
+/*
+    ============================================================
     GITHUB API
     ============================================================
 */
@@ -83,7 +100,10 @@ async function getRepositoryFiles(path = "") {
         `${OWNER}/${REPO}/contents/${path}` +
         `?ref=${encodeURIComponent(BRANCH)}`;
 
-    const response = await fetch(url);
+
+    const response =
+        await fetch(url);
+
 
     if (!response.ok) {
 
@@ -93,6 +113,7 @@ async function getRepositoryFiles(path = "") {
 
     }
 
+
     return await response.json();
 }
 
@@ -100,7 +121,7 @@ async function getRepositoryFiles(path = "") {
 
 /*
     ============================================================
-    LOAD ALL FILES
+    LOAD FILES
     ============================================================
 */
 
@@ -112,42 +133,20 @@ async function loadFiles() {
         </div>
     `;
 
+
     files = [];
+
 
     try {
 
-        await scanDirectory(ROOT_FOLDER);
+        await scanDirectory(
+            ROOT_FOLDER
+        );
 
 
         /*
-            ====================================================
-            FILES TO HIDE
-            ====================================================
-
-            These files still exist in GitHub.
-
-            They are ONLY hidden from this website's sidebar.
-
-            The comparison is case-insensitive.
+            Remove hidden files.
         */
-
-        const HIDDEN_FILES = [
-
-            // Website files
-            "index.html",
-            "style.css",
-            "script.js",
-
-            // GitHub files
-            "README.md",
-            "README",
-
-            "LICENSE",
-            "LICENSE.md",
-            "LICENSE.txt"
-
-        ];
-
 
         files = files.filter(file => {
 
@@ -158,20 +157,16 @@ async function loadFiles() {
                     .toLowerCase();
 
 
-            return !HIDDEN_FILES.some(hidden => {
-
-                return hidden.toLowerCase() === fileName;
-
-            });
+            return !HIDDEN_FILES.some(
+                hidden =>
+                    hidden.toLowerCase() === fileName
+            );
 
         });
 
 
-
         /*
-            ====================================================
-            SORT FILES
-            ====================================================
+            Sort paths.
         */
 
         files.sort((a, b) => {
@@ -188,21 +183,15 @@ async function loadFiles() {
         });
 
 
-
         /*
-            ====================================================
-            DISPLAY FILES
-            ====================================================
+            Create folder explorer.
         */
 
-        displayFileList();
-
+        buildFileTree();
 
 
         /*
-            ====================================================
-            NO FILES
-            ====================================================
+            No files found.
         */
 
         if (files.length === 0) {
@@ -220,13 +209,6 @@ async function loadFiles() {
         }
 
 
-
-        /*
-            ====================================================
-            STATUS
-            ====================================================
-        */
-
         statusText.textContent =
             `${files.length} file(s) found`;
 
@@ -234,6 +216,7 @@ async function loadFiles() {
     } catch (error) {
 
         console.error(error);
+
 
         fileList.innerHTML = `
             <div class="error">
@@ -243,6 +226,7 @@ async function loadFiles() {
                 branch, and repository visibility.
             </div>
         `;
+
 
         statusText.textContent =
             "Error loading files";
@@ -293,7 +277,9 @@ async function scanDirectory(path) {
 
         else if (item.type === "dir") {
 
-            await scanDirectory(item.path);
+            await scanDirectory(
+                item.path
+            );
 
         }
 
@@ -305,39 +291,443 @@ async function scanDirectory(path) {
 
 /*
     ============================================================
-    DISPLAY FILE LIST
+    BUILD FOLDER TREE
     ============================================================
 */
 
-function displayFileList() {
+function buildFileTree() {
 
     fileList.innerHTML = "";
 
 
+    /*
+        Root of our virtual tree.
+    */
+
+    const root = {
+        folders: {},
+        files: []
+    };
+
+
+    /*
+        Put every GitHub file into the tree.
+    */
+
     for (const file of files) {
 
+        const parts =
+            file.path.split("/");
+
+
+        let current =
+            root;
+
+
+        /*
+            Process folders.
+        */
+
+        for (
+            let i = 0;
+            i < parts.length - 1;
+            i++
+        ) {
+
+            const folderName =
+                parts[i];
+
+
+            if (
+                !current.folders[folderName]
+            ) {
+
+                current.folders[folderName] = {
+
+                    folders: {},
+
+                    files: []
+
+                };
+
+            }
+
+
+            current =
+                current.folders[folderName];
+
+        }
+
+
+        /*
+            Add file.
+        */
+
+        current.files.push(file);
+
+    }
+
+
+    /*
+        Render the tree.
+    */
+
+    renderTree(
+        root,
+        fileList,
+        0
+    );
+
+}
+
+
+
+/*
+    ============================================================
+    RENDER TREE
+    ============================================================
+*/
+
+function renderTree(
+    node,
+    container,
+    depth
+) {
+
+    /*
+        Get folders.
+    */
+
+    const folders =
+        Object.keys(
+            node.folders
+        ).sort(
+            (a, b) =>
+                a.localeCompare(
+                    b,
+                    undefined,
+                    {
+                        numeric: true,
+                        sensitivity: "base"
+                    }
+                )
+        );
+
+
+    /*
+        Get files.
+    */
+
+    const sortedFiles =
+        [...node.files].sort(
+            (a, b) =>
+                a.name.localeCompare(
+                    b.name,
+                    undefined,
+                    {
+                        numeric: true,
+                        sensitivity: "base"
+                    }
+                )
+        );
+
+
+    /*
+        ========================================================
+        FOLDERS FIRST
+        ========================================================
+    */
+
+    for (
+        const folderName of folders
+    ) {
+
+        const folder =
+            node.folders[folderName];
+
+
+        /*
+            Folder wrapper.
+        */
+
+        const folderWrapper =
+            document.createElement(
+                "div"
+            );
+
+
+        folderWrapper.className =
+            "folder-wrapper";
+
+
+        /*
+            Folder button.
+        */
+
+        const folderButton =
+            document.createElement(
+                "button"
+            );
+
+
+        folderButton.className =
+            "folder-item";
+
+
+        folderButton.style.paddingLeft =
+            `${10 + depth * 18}px`;
+
+
+        /*
+            Arrow.
+        */
+
+        const arrow =
+            document.createElement(
+                "span"
+            );
+
+
+        arrow.className =
+            "folder-arrow";
+
+
+        arrow.textContent =
+            "▶";
+
+
+        /*
+            Folder icon.
+        */
+
+        const icon =
+            document.createElement(
+                "span"
+            );
+
+
+        icon.className =
+            "folder-icon";
+
+
+        icon.textContent =
+            "📁";
+
+
+        /*
+            Folder name.
+        */
+
+        const name =
+            document.createElement(
+                "span"
+            );
+
+
+        name.className =
+            "folder-name";
+
+
+        name.textContent =
+            folderName;
+
+
+        /*
+            Build button.
+        */
+
+        folderButton.appendChild(
+            arrow
+        );
+
+
+        folderButton.appendChild(
+            icon
+        );
+
+
+        folderButton.appendChild(
+            name
+        );
+
+
+        /*
+            Child container.
+        */
+
+        const children =
+            document.createElement(
+                "div"
+            );
+
+
+        children.className =
+            "folder-children";
+
+
+        children.style.display =
+            "none";
+
+
+        /*
+            Folder click.
+        */
+
+        folderButton.addEventListener(
+            "click",
+            () => {
+
+                const isOpen =
+                    folderButton.classList.contains(
+                        "open"
+                    );
+
+
+                if (isOpen) {
+
+                    folderButton.classList.remove(
+                        "open"
+                    );
+
+
+                    children.style.display =
+                        "none";
+
+
+                } else {
+
+                    folderButton.classList.add(
+                        "open"
+                    );
+
+
+                    children.style.display =
+                        "block";
+
+                }
+
+            }
+        );
+
+
+        /*
+            Add folder.
+        */
+
+        folderWrapper.appendChild(
+            folderButton
+        );
+
+
+        folderWrapper.appendChild(
+            children
+        );
+
+
+        container.appendChild(
+            folderWrapper
+        );
+
+
+        /*
+            Render everything inside folder.
+        */
+
+        renderTree(
+            folder,
+            children,
+            depth + 1
+        );
+
+    }
+
+
+
+    /*
+        ========================================================
+        FILES
+        ========================================================
+    */
+
+    for (
+        const file of sortedFiles
+    ) {
+
         const button =
-            document.createElement("button");
+            document.createElement(
+                "button"
+            );
 
 
         button.className =
             "file-item";
 
 
-        /*
-            Using textContent is important.
+        button.style.paddingLeft =
+            `${30 + depth * 18}px`;
 
-            It means the filename is displayed as text
-            and cannot accidentally become HTML.
+
+        /*
+            File icon.
         */
 
-        button.textContent =
-            file.path;
+        const icon =
+            document.createElement(
+                "span"
+            );
 
+
+        icon.className =
+            "file-icon";
+
+
+        icon.textContent =
+            getFileIcon(file.name);
+
+
+        /*
+            File name.
+        */
+
+        const name =
+            document.createElement(
+                "span"
+            );
+
+
+        name.className =
+            "file-name";
+
+
+        name.textContent =
+            file.name;
+
+
+        /*
+            Build file button.
+        */
+
+        button.appendChild(
+            icon
+        );
+
+
+        button.appendChild(
+            name
+        );
+
+
+        /*
+            Full path tooltip.
+        */
 
         button.title =
             file.path;
 
+
+        /*
+            Open file.
+        */
 
         button.addEventListener(
             "click",
@@ -345,9 +735,95 @@ function displayFileList() {
         );
 
 
-        fileList.appendChild(button);
+        container.appendChild(
+            button
+        );
 
     }
+
+}
+
+
+
+/*
+    ============================================================
+    FILE ICONS
+    ============================================================
+*/
+
+function getFileIcon(
+    fileName
+) {
+
+    const extension =
+        fileName
+            .split(".")
+            .pop()
+            .toLowerCase();
+
+
+    const icons = {
+
+        js: "🟨",
+
+        jsx: "⚛️",
+
+        ts: "🔷",
+
+        tsx: "⚛️",
+
+        py: "🐍",
+
+        java: "☕",
+
+        c: "🔵",
+
+        cpp: "🔵",
+
+        h: "🔵",
+
+        hpp: "🔵",
+
+        ino: "🔌",
+
+        html: "🌐",
+
+        htm: "🌐",
+
+        css: "🎨",
+
+        scss: "🎨",
+
+        json: "🧾",
+
+        xml: "🧾",
+
+        php: "🐘",
+
+        rb: "💎",
+
+        go: "🐹",
+
+        rs: "🦀",
+
+        swift: "🍎",
+
+        kt: "🟣",
+
+        sql: "🗄️",
+
+        sh: "💻",
+
+        bat: "💻",
+
+        md: "📝",
+
+        txt: "📄"
+
+    };
+
+
+    return icons[extension] || "📄";
 
 }
 
@@ -368,7 +844,9 @@ async function openFile(file) {
 
 
         const response =
-            await fetch(file.download_url);
+            await fetch(
+                file.download_url
+            );
 
 
         if (!response.ok) {
@@ -380,34 +858,17 @@ async function openFile(file) {
         }
 
 
-
         /*
-            ====================================================
-            IMPORTANT
-            ====================================================
-
-            Read the GitHub file as TEXT.
+            Read as plain text.
 
             Nothing is executed.
 
-            HTML stays text.
-            JavaScript stays text.
-            Python stays text.
-            C++ stays text.
-
-            Spaces and indentation are preserved.
+            Indentation and whitespace are preserved.
         */
 
         const code =
             await response.text();
 
-
-
-        /*
-            ====================================================
-            SET CURRENT FILE
-            ====================================================
-        */
 
         selectedFile =
             file;
@@ -437,13 +898,6 @@ async function openFile(file) {
             false;
 
 
-
-        /*
-            ====================================================
-            UPDATE UI
-            ====================================================
-        */
-
         updateLineNumbers();
 
         updateCursorPosition();
@@ -451,16 +905,8 @@ async function openFile(file) {
         highlightSelectedFile();
 
 
-
         /*
-            ====================================================
-            SAVE EDITED VERSION LOCALLY
-            ====================================================
-
-            This saves the user's edited version in their
-            browser.
-
-            It does NOT change the GitHub file.
+            Save locally.
         */
 
         localStorage.setItem(
@@ -477,6 +923,7 @@ async function openFile(file) {
 
         console.error(error);
 
+
         statusText.textContent =
             "Could not load file";
 
@@ -488,7 +935,7 @@ async function openFile(file) {
 
 /*
     ============================================================
-    SELECT ACTIVE FILE
+    HIGHLIGHT ACTIVE FILE
     ============================================================
 */
 
@@ -500,25 +947,28 @@ function highlightSelectedFile() {
         );
 
 
-    buttons.forEach(button => {
+    buttons.forEach(
+        button => {
 
-        button.classList.remove(
-            "active"
-        );
-
-
-        if (
-            selectedFile &&
-            button.textContent === selectedFile.path
-        ) {
-
-            button.classList.add(
+            button.classList.remove(
                 "active"
             );
 
-        }
 
-    });
+            if (
+                selectedFile &&
+                button.dataset.path ===
+                selectedFile.path
+            ) {
+
+                button.classList.add(
+                    "active"
+                );
+
+            }
+
+        }
+    );
 
 }
 
@@ -526,7 +976,7 @@ function highlightSelectedFile() {
 
 /*
     ============================================================
-    COPY CODE
+    COPY
     ============================================================
 */
 
@@ -534,7 +984,9 @@ copyButton.addEventListener(
     "click",
     async () => {
 
-        if (codeEditor.disabled) {
+        if (
+            codeEditor.disabled
+        ) {
 
             return;
 
@@ -552,20 +1004,18 @@ copyButton.addEventListener(
                 "Copied!";
 
 
-            setTimeout(() => {
+            setTimeout(
+                () => {
 
-                statusText.textContent =
-                    "Ready";
+                    statusText.textContent =
+                        "Ready";
 
-            }, 1500);
+                },
+                1500
+            );
 
 
         } catch (error) {
-
-            /*
-                Fallback for browsers where
-                Clipboard API is unavailable.
-            */
 
             codeEditor.select();
 
@@ -641,10 +1091,6 @@ codeEditor.addEventListener(
         }
 
 
-        /*
-            Save edited text locally.
-        */
-
         localStorage.setItem(
             `code-editor-${selectedFile.path}`,
             codeEditor.value
@@ -664,17 +1110,17 @@ codeEditor.addEventListener(
 
 /*
     ============================================================
-    TAB KEY SUPPORT
+    TAB SUPPORT
     ============================================================
-
-    Pressing TAB inside the editor inserts 4 spaces.
 */
 
 codeEditor.addEventListener(
     "keydown",
     event => {
 
-        if (event.key !== "Tab") {
+        if (
+            event.key !== "Tab"
+        ) {
 
             return;
 
@@ -733,7 +1179,9 @@ codeEditor.addEventListener(
 function updateLineNumbers() {
 
     const lineCount =
-        codeEditor.value.split("\n").length;
+        codeEditor.value
+            .split("\n")
+            .length;
 
 
     let numbers = "";
@@ -760,7 +1208,7 @@ function updateLineNumbers() {
 
 /*
     ============================================================
-    SYNCHRONIZE LINE NUMBER SCROLLING
+    SYNCHRONIZE SCROLL
     ============================================================
 */
 
@@ -796,7 +1244,9 @@ function updateCursorPosition() {
 
 
     const lines =
-        beforeCursor.split("\n");
+        beforeCursor.split(
+            "\n"
+        );
 
 
     const line =
@@ -815,30 +1265,17 @@ function updateCursorPosition() {
 }
 
 
-
-/*
-    Update cursor position when typing.
-*/
-
 codeEditor.addEventListener(
     "keyup",
     updateCursorPosition
 );
 
 
-/*
-    Update cursor position when clicking.
-*/
-
 codeEditor.addEventListener(
     "click",
     updateCursorPosition
 );
 
-
-/*
-    Update cursor position when selecting.
-*/
 
 codeEditor.addEventListener(
     "select",
