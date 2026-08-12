@@ -16,8 +16,8 @@
 */
 
 
-const OWNER = "YOUR_GITHUB_USERNAME";
-const REPO = "YOUR_REPOSITORY_NAME";
+const OWNER = "Alatheesh";
+const REPO = "mycode";
 
 
 // Change this if your files are on another branch.
