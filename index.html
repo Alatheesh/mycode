@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Code Viewer</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <div class="app">
+
+        <!-- Sidebar -->
+        <aside class="sidebar">
+
+            <div class="sidebar-header">
+                <h1>Code Files</h1>
+                <button id="refreshButton" title="Refresh files">
+                    ↻
+                </button>
+            </div>
+
+            <div id="fileList" class="file-list">
+                <div class="loading">
+                    Loading files...
+                </div>
+            </div>
+
+        </aside>
+
+
+        <!-- Main area -->
+        <main class="main">
+
+            <header class="topbar">
+
+                <div class="file-info">
+                    <span id="currentFile">
+                        Select a file
+                    </span>
+                </div>
+
+                <div class="actions">
+
+                    <button id="copyButton" disabled>
+                        Copy
+                    </button>
+
+                    <button id="resetButton" disabled>
+                        Reset
+                    </button>
+
+                </div>
+
+            </header>
+
+
+            <section class="editor-container">
+
+                <div class="editor-wrapper">
+
+                    <div
+                        id="lineNumbers"
+                        class="line-numbers"
+                        aria-hidden="true"
+                    ></div>
+
+                    <textarea
+                        id="codeEditor"
+                        spellcheck="false"
+                        autocomplete="off"
+                        autocorrect="off"
+                        autocapitalize="off"
+                        disabled
+                        wrap="off"
+                    ></textarea>
+
+                </div>
+
+            </section>
+
+
+            <footer class="statusbar">
+
+                <span id="statusText">
+                    Ready
+                </span>
+
+                <span id="cursorPosition">
+                    Ln 1, Col 1
+                </span>
+
+            </footer>
+
+        </main>
+
+    </div>
+
+
+    <script src="script.js"></script>
+
+</body>
+</html>
