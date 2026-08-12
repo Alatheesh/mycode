@@ -3,29 +3,20 @@
     CONFIGURATION
     ============================================================
 
-    If your GitHub Pages URL is:
+    Your GitHub repository:
 
-    https://username.github.io/my-repository/
-
-    then:
-
-    OWNER = username
-    REPO  = my-repository
-
-    Change these two values.
+    https://github.com/alatheesh/mycode
 */
-
 
 const OWNER = "alatheesh";
 const REPO = "mycode";
 
 
-// Change this if your files are on another branch.
+// GitHub branch
 const BRANCH = "main";
 
 
 // Folder to read.
-
 //
 // "" means the root of the repository.
 //
@@ -34,7 +25,6 @@ const BRANCH = "main";
 //
 // would read files inside:
 // repository/src/
-//
 
 const ROOT_FOLDER = "";
 
@@ -128,25 +118,61 @@ async function loadFiles() {
 
         await scanDirectory(ROOT_FOLDER);
 
-        /*
-            Remove files that belong to the website itself.
 
-            This prevents index.html, style.css and script.js
-            from being displayed unless you want them.
+        /*
+            ====================================================
+            FILES TO HIDE
+            ====================================================
+
+            These files still exist in GitHub.
+
+            They are ONLY hidden from this website's sidebar.
+
+            The comparison is case-insensitive.
         */
+
+        const HIDDEN_FILES = [
+
+            // Website files
+            "index.html",
+            "style.css",
+            "script.js",
+
+            // GitHub files
+            "README.md",
+            "README",
+
+            "LICENSE",
+            "LICENSE.md",
+            "LICENSE.txt"
+
+        ];
+
 
         files = files.filter(file => {
 
-            return ![
-                "index.html",
-                "style.css",
-                "script.js"
-            ].includes(
-                file.path.split("/").pop()
-            );
+            const fileName =
+                file.path
+                    .split("/")
+                    .pop()
+                    .toLowerCase();
+
+
+            return !HIDDEN_FILES.some(hidden => {
+
+                return hidden.toLowerCase() === fileName;
+
+            });
 
         });
 
+
+
+        /*
+            ====================================================
+            SORT FILES
+            ====================================================
+        */
 
         files.sort((a, b) => {
 
@@ -162,8 +188,22 @@ async function loadFiles() {
         });
 
 
+
+        /*
+            ====================================================
+            DISPLAY FILES
+            ====================================================
+        */
+
         displayFileList();
 
+
+
+        /*
+            ====================================================
+            NO FILES
+            ====================================================
+        */
 
         if (files.length === 0) {
 
@@ -173,9 +213,19 @@ async function loadFiles() {
                 </div>
             `;
 
+            statusText.textContent =
+                "No files found";
+
             return;
         }
 
+
+
+        /*
+            ====================================================
+            STATUS
+            ====================================================
+        */
 
         statusText.textContent =
             `${files.length} file(s) found`;
@@ -194,8 +244,11 @@ async function loadFiles() {
             </div>
         `;
 
-        statusText.textContent = "Error loading files";
+        statusText.textContent =
+            "Error loading files";
+
     }
+
 }
 
 
@@ -208,21 +261,35 @@ async function loadFiles() {
 
 async function scanDirectory(path) {
 
-    const items = await getRepositoryFiles(path);
+    const items =
+        await getRepositoryFiles(path);
 
 
     for (const item of items) {
 
+
+        /*
+            FILE
+        */
+
         if (item.type === "file") {
 
             files.push({
+
                 name: item.name,
+
                 path: item.path,
+
                 download_url: item.download_url
+
             });
 
         }
 
+
+        /*
+            DIRECTORY
+        */
 
         else if (item.type === "dir") {
 
@@ -231,6 +298,7 @@ async function scanDirectory(path) {
         }
 
     }
+
 }
 
 
@@ -252,12 +320,23 @@ function displayFileList() {
             document.createElement("button");
 
 
-        button.className = "file-item";
+        button.className =
+            "file-item";
 
-        button.textContent = file.path;
+
+        /*
+            Using textContent is important.
+
+            It means the filename is displayed as text
+            and cannot accidentally become HTML.
+        */
+
+        button.textContent =
+            file.path;
 
 
-        button.title = file.path;
+        button.title =
+            file.path;
 
 
         button.addEventListener(
@@ -269,6 +348,7 @@ function displayFileList() {
         fileList.appendChild(button);
 
     }
+
 }
 
 
@@ -300,38 +380,69 @@ async function openFile(file) {
         }
 
 
+
         /*
-            IMPORTANT:
+            ====================================================
+            IMPORTANT
+            ====================================================
 
-            response.text() reads the file as TEXT.
+            Read the GitHub file as TEXT.
 
-            It does NOT execute HTML.
-            It does NOT interpret JavaScript.
-            It does NOT modify indentation.
+            Nothing is executed.
+
+            HTML stays text.
+            JavaScript stays text.
+            Python stays text.
+            C++ stays text.
+
+            Spaces and indentation are preserved.
         */
 
         const code =
             await response.text();
 
 
-        selectedFile = file;
 
-        originalCode = code;
+        /*
+            ====================================================
+            SET CURRENT FILE
+            ====================================================
+        */
+
+        selectedFile =
+            file;
 
 
-        codeEditor.value = code;
+        originalCode =
+            code;
 
-        codeEditor.disabled = false;
+
+        codeEditor.value =
+            code;
+
+
+        codeEditor.disabled =
+            false;
 
 
         currentFile.textContent =
             file.path;
 
 
-        copyButton.disabled = false;
+        copyButton.disabled =
+            false;
 
-        resetButton.disabled = false;
 
+        resetButton.disabled =
+            false;
+
+
+
+        /*
+            ====================================================
+            UPDATE UI
+            ====================================================
+        */
 
         updateLineNumbers();
 
@@ -340,11 +451,16 @@ async function openFile(file) {
         highlightSelectedFile();
 
 
-        /*
-            Save this version locally.
 
-            This means if the user refreshes the page,
-            their browser can remember their edit.
+        /*
+            ====================================================
+            SAVE EDITED VERSION LOCALLY
+            ====================================================
+
+            This saves the user's edited version in their
+            browser.
+
+            It does NOT change the GitHub file.
         */
 
         localStorage.setItem(
@@ -386,7 +502,9 @@ function highlightSelectedFile() {
 
     buttons.forEach(button => {
 
-        button.classList.remove("active");
+        button.classList.remove(
+            "active"
+        );
 
 
         if (
@@ -394,7 +512,9 @@ function highlightSelectedFile() {
             button.textContent === selectedFile.path
         ) {
 
-            button.classList.add("active");
+            button.classList.add(
+                "active"
+            );
 
         }
 
@@ -415,7 +535,9 @@ copyButton.addEventListener(
     async () => {
 
         if (codeEditor.disabled) {
+
             return;
+
         }
 
 
@@ -441,13 +563,17 @@ copyButton.addEventListener(
         } catch (error) {
 
             /*
-                Fallback for browsers where the
+                Fallback for browsers where
                 Clipboard API is unavailable.
             */
 
             codeEditor.select();
 
-            document.execCommand("copy");
+
+            document.execCommand(
+                "copy"
+            );
+
 
             statusText.textContent =
                 "Copied!";
@@ -470,7 +596,9 @@ resetButton.addEventListener(
     () => {
 
         if (!selectedFile) {
+
             return;
+
         }
 
 
@@ -500,11 +628,6 @@ resetButton.addEventListener(
     ============================================================
     LOCAL EDITING
     ============================================================
-
-    The editor is completely normal text.
-
-    Spaces, tabs, blank lines, brackets, quotes,
-    indentation, etc. are preserved exactly.
 */
 
 codeEditor.addEventListener(
@@ -512,9 +635,15 @@ codeEditor.addEventListener(
     () => {
 
         if (!selectedFile) {
+
             return;
+
         }
 
+
+        /*
+            Save edited text locally.
+        */
 
         localStorage.setItem(
             `code-editor-${selectedFile.path}`,
@@ -538,10 +667,7 @@ codeEditor.addEventListener(
     TAB KEY SUPPORT
     ============================================================
 
-    Normally pressing TAB inside a textarea
-    moves to the next HTML element.
-
-    We change that so TAB inserts spaces.
+    Pressing TAB inside the editor inserts 4 spaces.
 */
 
 codeEditor.addEventListener(
@@ -549,7 +675,9 @@ codeEditor.addEventListener(
     event => {
 
         if (event.key !== "Tab") {
+
             return;
+
         }
 
 
@@ -569,9 +697,14 @@ codeEditor.addEventListener(
 
 
         codeEditor.value =
-            value.substring(0, start) +
+            value.substring(
+                0,
+                start
+            ) +
             "    " +
-            value.substring(end);
+            value.substring(
+                end
+            );
 
 
         codeEditor.selectionStart =
@@ -612,7 +745,8 @@ function updateLineNumbers() {
         i++
     ) {
 
-        numbers += i + "\n";
+        numbers +=
+            i + "\n";
 
     }
 
@@ -670,7 +804,9 @@ function updateCursorPosition() {
 
 
     const column =
-        lines[lines.length - 1].length + 1;
+        lines[
+            lines.length - 1
+        ].length + 1;
 
 
     cursorPosition.textContent =
@@ -680,17 +816,29 @@ function updateCursorPosition() {
 
 
 
+/*
+    Update cursor position when typing.
+*/
+
 codeEditor.addEventListener(
     "keyup",
     updateCursorPosition
 );
 
 
+/*
+    Update cursor position when clicking.
+*/
+
 codeEditor.addEventListener(
     "click",
     updateCursorPosition
 );
 
+
+/*
+    Update cursor position when selecting.
+*/
 
 codeEditor.addEventListener(
     "select",
