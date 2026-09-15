@@ -1,6 +1,13 @@
+/*
+    ============================================================
+    RESET
+    ============================================================
+*/
+
 * {
     box-sizing: border-box;
 }
+
 
 html,
 body {
@@ -8,41 +15,52 @@ body {
     padding: 0;
     width: 100%;
     height: 100%;
+}
 
+
+body {
+    background: #0d1117;
+    color: #e6edf3;
     font-family:
         -apple-system,
         BlinkMacSystemFont,
         "Segoe UI",
         Roboto,
+        Helvetica,
         Arial,
         sans-serif;
 
-    background: #0d1117;
-    color: #e6edf3;
-}
-
-body {
     overflow: hidden;
 }
 
 
-/* Main application */
+/*
+    ============================================================
+    APP
+    ============================================================
+*/
 
 .app {
     display: flex;
-
-    width: 100%;
+    width: 100vw;
     height: 100vh;
-
-    overflow: hidden;
+    min-width: 0;
+    min-height: 0;
 }
 
 
-/* Sidebar */
+/*
+    ============================================================
+    SIDEBAR
+    ============================================================
+*/
 
 .sidebar {
-    width: 270px;
-    min-width: 270px;
+    width: 280px;
+    min-width: 220px;
+    max-width: 40vw;
+
+    height: 100vh;
 
     background: #161b22;
 
@@ -50,19 +68,30 @@ body {
 
     display: flex;
     flex-direction: column;
+
+    overflow: hidden;
 }
 
 
-.sidebar-header {
-    height: 60px;
+/*
+    ============================================================
+    SIDEBAR HEADER
+    ============================================================
+*/
 
-    padding: 0 16px;
+.sidebar-header {
+    height: 56px;
+    min-height: 56px;
 
     display: flex;
     align-items: center;
     justify-content: space-between;
 
+    padding: 0 14px;
+
     border-bottom: 1px solid #30363d;
+
+    background: #161b22;
 }
 
 
@@ -71,6 +100,8 @@ body {
 
     font-size: 16px;
     font-weight: 600;
+
+    color: #f0f6fc;
 }
 
 
@@ -78,403 +109,133 @@ body {
     width: 34px;
     height: 34px;
 
-    border: 0;
-    border-radius: 6px;
-
-    background: transparent;
-    color: #8b949e;
-
-    font-size: 20px;
-
-    cursor: pointer;
-}
-
-
-.sidebar-header button:hover {
-    background: #21262d;
-    color: #ffffff;
-}
-
-
-/* File list */
-
-.file-list {
-    flex: 1;
-
-    padding: 8px;
-
-    overflow-y: auto;
-}
-
-
-.file-item {
-    width: 100%;
-
-    padding: 9px 10px;
-
-    margin-bottom: 2px;
-
-    border: 0;
-    border-radius: 6px;
-
-    background: transparent;
-
-    color: #c9d1d9;
-
-    text-align: left;
-
-    font-family: inherit;
-    font-size: 14px;
-
-    cursor: pointer;
-
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-
-.file-item:hover {
-    background: #21262d;
-}
-
-
-.file-item.active {
-    background: #1f6feb;
-    color: white;
-}
-
-
-.loading {
-    padding: 12px;
-
-    color: #8b949e;
-
-    font-size: 14px;
-}
-
-
-.error {
-    padding: 12px;
-
-    color: #f85149;
-
-    font-size: 14px;
-
-    line-height: 1.5;
-}
-
-
-/* Main */
-
-.main {
-    flex: 1;
-
-    min-width: 0;
-
-    display: flex;
-    flex-direction: column;
-
-    background: #0d1117;
-}
-
-
-/* Top bar */
-
-.topbar {
-    height: 60px;
-
-    padding: 0 16px;
-
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-
-    border-bottom: 1px solid #30363d;
-
-    background: #161b22;
-}
-
-
-.file-info {
-    min-width: 0;
-}
-
-
-#currentFile {
-    font-family:
-        "SFMono-Regular",
-        Consolas,
-        "Liberation Mono",
-        monospace;
-
-    font-size: 14px;
-
-    color: #e6edf3;
-
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-
-.actions {
-    display: flex;
-    gap: 8px;
-}
-
-
-.actions button {
-    padding: 7px 13px;
+    padding: 0;
 
     border: 1px solid #30363d;
     border-radius: 6px;
 
     background: #21262d;
-    color: #e6edf3;
+    color: #c9d1d9;
 
-    font-size: 13px;
+    font-size: 20px;
+    line-height: 1;
 
     cursor: pointer;
+
+    transition:
+        background 0.15s ease,
+        border-color 0.15s ease,
+        color 0.15s ease;
 }
 
 
-.actions button:hover:not(:disabled) {
+.sidebar-header button:hover {
     background: #30363d;
+    border-color: #8b949e;
+    color: #ffffff;
 }
 
 
-.actions button:disabled {
-    opacity: 0.45;
-    cursor: not-allowed;
+.sidebar-header button:active {
+    transform: translateY(1px);
 }
 
 
-/* Editor */
+/*
+    ============================================================
+    FILE LIST
+    ============================================================
+*/
 
-.editor-container {
+.file-list {
     flex: 1;
 
     min-height: 0;
 
-    overflow: hidden;
+    overflow-y: auto;
+    overflow-x: hidden;
+
+    padding: 8px 0;
 }
 
 
-.editor-wrapper {
-    width: 100%;
-    height: 100%;
+/*
+    ============================================================
+    SCROLLBARS
+    ============================================================
+*/
 
-    display: flex;
-
-    overflow: hidden;
-
-    background: #0d1117;
-}
-
-
-.line-numbers {
-    width: 60px;
-    min-width: 60px;
-
-    padding: 16px 10px;
-
-    overflow: hidden;
-
-    border-right: 1px solid #21262d;
-
-    background: #0d1117;
-
-    color: #484f58;
-
-    font-family:
-        "SFMono-Regular",
-        Consolas,
-        "Liberation Mono",
-        monospace;
-
-    font-size: 14px;
-    line-height: 1.5;
-
-    text-align: right;
-
-    user-select: none;
-
-    white-space: pre;
-}
-
-
-#codeEditor {
-    flex: 1;
-
-    width: 100%;
-    height: 100%;
-
-    padding: 16px;
-
-    margin: 0;
-
-    border: 0;
-    outline: none;
-
-    resize: none;
-
-    background: #0d1117;
-    color: #e6edf3;
-
-    font-family:
-        "SFMono-Regular",
-        Consolas,
-        "Liberation Mono",
-        Menlo,
-        monospace;
-
-    font-size: 14px;
-
-    line-height: 1.5;
-
-    tab-size: 4;
-
-    white-space: pre;
-
-    overflow: auto;
-
-    caret-color: #58a6ff;
-}
-
-
-#codeEditor:disabled {
-    cursor: default;
-}
-
-
-/* Scrollbar */
-
-::-webkit-scrollbar {
+.file-list::-webkit-scrollbar,
+.editor-wrapper::-webkit-scrollbar,
+.image-preview-stage::-webkit-scrollbar {
     width: 10px;
     height: 10px;
 }
 
 
-::-webkit-scrollbar-track {
+.file-list::-webkit-scrollbar-track,
+.editor-wrapper::-webkit-scrollbar-track,
+.image-preview-stage::-webkit-scrollbar-track {
     background: #0d1117;
 }
 
 
-::-webkit-scrollbar-thumb {
+.file-list::-webkit-scrollbar-thumb,
+.editor-wrapper::-webkit-scrollbar-thumb,
+.image-preview-stage::-webkit-scrollbar-thumb {
     background: #30363d;
-
-    border-radius: 5px;
+    border-radius: 6px;
 }
 
 
-::-webkit-scrollbar-thumb:hover {
+.file-list::-webkit-scrollbar-thumb:hover,
+.editor-wrapper::-webkit-scrollbar-thumb:hover,
+.image-preview-stage::-webkit-scrollbar-thumb:hover {
     background: #484f58;
 }
 
 
-/* Status bar */
+/*
+    ============================================================
+    LOADING / ERROR
+    ============================================================
+*/
 
-.statusbar {
-    height: 30px;
-
-    padding: 0 12px;
-
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-
-    border-top: 1px solid #30363d;
-
-    background: #161b22;
+.loading,
+.error {
+    padding: 20px;
 
     color: #8b949e;
 
-    font-family:
-        "SFMono-Regular",
-        Consolas,
-        "Liberation Mono",
-        monospace;
+    font-size: 14px;
 
-    font-size: 11px;
+    line-height: 1.5;
 }
 
 
-/* Mobile */
-
-@media (max-width: 700px) {
-
-    .sidebar {
-        width: 210px;
-        min-width: 210px;
-    }
-
-    .topbar {
-        padding: 0 10px;
-    }
-
-    .actions button {
-        padding: 6px 9px;
-    }
-
-    .line-numbers {
-        width: 45px;
-        min-width: 45px;
-
-        padding-left: 5px;
-        padding-right: 5px;
-    }
-
-    #codeEditor {
-        padding: 12px;
-
-        font-size: 13px;
-    }
+.error {
+    color: #f85149;
 }
 
 
-@media (max-width: 500px) {
-
-    .sidebar {
-        width: 160px;
-        min-width: 160px;
-    }
-
-    .sidebar-header {
-        padding: 0 10px;
-    }
-
-    .file-item {
-        font-size: 12px;
-    }
-
-    #resetButton {
-        display: none;
-    }
-}
-
-/* ============================================================
-   FOLDER EXPLORER
-   ============================================================ */
+/*
+    ============================================================
+    FOLDER
+    ============================================================
+*/
 
 .folder-wrapper {
     width: 100%;
 }
 
 
-/* Folder button */
-
-.folder-item {
+.folder-item,
+.file-item {
     width: 100%;
 
-    height: 32px;
-
-    padding-top: 0;
-    padding-bottom: 0;
-    padding-right: 8px;
+    min-height: 32px;
 
     border: 0;
-    border-radius: 5px;
 
     background: transparent;
 
@@ -483,116 +244,34 @@ body {
     display: flex;
     align-items: center;
 
-    gap: 5px;
-
     text-align: left;
 
+    font-size: 14px;
+
     font-family: inherit;
-    font-size: 13px;
 
     cursor: pointer;
 
+    padding-top: 5px;
+    padding-bottom: 5px;
+    padding-right: 10px;
+
     white-space: nowrap;
+
+    overflow: hidden;
+
+    transition:
+        background 0.1s ease,
+        color 0.1s ease;
 }
 
 
-.folder-item:hover {
+.folder-item:hover,
+.file-item:hover {
     background: #21262d;
     color: #ffffff;
 }
 
-
-/* Folder arrow */
-
-.folder-arrow {
-    width: 12px;
-    min-width: 12px;
-
-    font-size: 8px;
-
-    color: #8b949e;
-
-    transition:
-        transform 0.12s ease;
-}
-
-
-.folder-item.open .folder-arrow {
-    transform: rotate(90deg);
-}
-
-
-/* Folder icon */
-
-.folder-icon {
-    width: 20px;
-    min-width: 20px;
-
-    font-size: 14px;
-
-    line-height: 1;
-}
-
-
-/* Folder name */
-
-.folder-name {
-    overflow: hidden;
-
-    text-overflow: ellipsis;
-
-    white-space: nowrap;
-}
-
-
-/* Folder contents */
-
-.folder-children {
-    width: 100%;
-}
-
-
-/* ============================================================
-   FILES
-   ============================================================ */
-
-.file-item {
-    height: 32px;
-
-    display: flex;
-    align-items: center;
-
-    gap: 7px;
-}
-
-
-.file-icon {
-    width: 20px;
-    min-width: 20px;
-
-    display: inline-flex;
-
-    align-items: center;
-    justify-content: center;
-
-    font-size: 13px;
-
-    line-height: 1;
-}
-
-
-.file-name {
-    min-width: 0;
-
-    overflow: hidden;
-
-    text-overflow: ellipsis;
-
-    white-space: nowrap;
-}
-
-
-/* Active file */
 
 .file-item.active {
     background: #1f6feb;
@@ -601,195 +280,288 @@ body {
 
 
 .file-item.active:hover {
-    background: #1f6feb;
+    background: #388bfd;
 }
 
 
-/* ============================================================
-   SIDEBAR SCROLLING
-   ============================================================ */
-
-.file-list {
-    overflow-x: hidden;
-    overflow-y: auto;
-
-    scrollbar-width: thin;
-}
-
-
-/* ============================================================
-   MOBILE
-   ============================================================ */
-
-@media (max-width: 700px) {
-
-    .folder-item,
-    .file-item {
-        height: 34px;
-
-        font-size: 12px;
-    }
-
-}
-
-
-/* ============================================================
-   IMAGE PREVIEW
-   ============================================================ */
-
-.image-preview {
-    flex: 1;
-    min-width: 0;
-    min-height: 0;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    background: #0d1117;
-}
-
-/* IMPORTANT:
-   Keep image preview completely hidden until
-   an actual image file is clicked.
+/*
+    ============================================================
+    FOLDER ARROW
+    ============================================================
 */
-.image-preview[hidden] {
-    display: none !important;
+
+.folder-arrow {
+    width: 16px;
+    min-width: 16px;
+
+    margin-right: 2px;
+
+    font-size: 9px;
+
+    color: #8b949e;
+
+    transition:
+        transform 0.15s ease;
 }
 
-.image-preview-toolbar {
-    min-height: 44px;
-    padding: 0 14px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    border-bottom: 1px solid #30363d;
-    background: #161b22;
-    color: #c9d1d9;
-    font-size: 13px;
+
+.folder-item.open .folder-arrow {
+    transform: rotate(90deg);
 }
 
-.image-preview-toolbar a {
-    color: #58a6ff;
-    text-decoration: none;
+
+.folder-icon {
+    width: 22px;
+    min-width: 22px;
+
+    margin-right: 4px;
+
+    font-size: 15px;
+}
+
+
+.folder-name,
+.file-name {
+    overflow: hidden;
+
+    text-overflow: ellipsis;
+
     white-space: nowrap;
 }
 
-.image-preview-toolbar a:hover {
-    text-decoration: underline;
+
+/*
+    ============================================================
+    FILE ICON
+    ============================================================
+*/
+
+.file-icon {
+    width: 22px;
+    min-width: 22px;
+
+    margin-right: 5px;
+
+    font-size: 14px;
+
+    text-align: center;
 }
 
-.image-preview-stage {
+
+/*
+    ============================================================
+    MAIN
+    ============================================================
+*/
+
+.main {
     flex: 1;
+
+    min-width: 0;
     min-height: 0;
-    padding: 24px;
-    overflow: auto;
+
+    height: 100vh;
+
+    display: flex;
+    flex-direction: column;
+
+    background: #0d1117;
+}
+
+
+/*
+    ============================================================
+    TOPBAR
+    ============================================================
+*/
+
+.topbar {
+    height: 56px;
+    min-height: 56px;
+
     display: flex;
     align-items: center;
-    justify-content: center;
-    background:
-        linear-gradient(45deg, #161b22 25%, transparent 25%),
-        linear-gradient(-45deg, #161b22 25%, transparent 25%),
-        linear-gradient(45deg, transparent 75%, #161b22 75%),
-        linear-gradient(-45deg, transparent 75%, #161b22 75%);
-    background-size: 24px 24px;
-    background-position: 0 0, 0 12px, 12px -12px, -12px 0;
+    justify-content: space-between;
+
+    gap: 16px;
+
+    padding: 0 16px;
+
+    border-bottom: 1px solid #30363d;
+
+    background: #161b22;
 }
 
-#previewImage {
+
+/*
+    ============================================================
+    FILE INFO
+    ============================================================
+*/
+
+.file-info {
+    min-width: 0;
+
+    flex: 1;
+}
+
+
+#currentFile {
     display: block;
-    max-width: 100%;
-    max-height: 100%;
-    width: auto;
-    height: auto;
-    object-fit: contain;
+
+    overflow: hidden;
+
+    text-overflow: ellipsis;
+
+    white-space: nowrap;
+
+    color: #f0f6fc;
+
+    font-size: 14px;
+}
+
+
+/*
+    ============================================================
+    ACTIONS
+    ============================================================
+*/
+
+.actions {
+    display: flex;
+
+    align-items: center;
+
+    gap: 8px;
+
+    flex-shrink: 0;
+}
+
+
+.actions > button {
+    height: 32px;
+
+    padding: 0 12px;
+
+    border: 1px solid #30363d;
+
     border-radius: 6px;
-    box-shadow: 0 10px 35px rgba(0, 0, 0, 0.35);
+
+    background: #21262d;
+
+    color: #c9d1d9;
+
+    font-family: inherit;
+
+    font-size: 13px;
+
+    cursor: pointer;
+
+    transition:
+        background 0.15s ease,
+        border-color 0.15s ease,
+        color 0.15s ease;
 }
 
-@media (max-width: 700px) {
-    .image-preview-stage {
-        padding: 12px;
-    }
 
-    .image-preview-toolbar {
-        min-height: 40px;
-        padding: 0 10px;
-        font-size: 12px;
-    }
+.actions > button:hover:not(:disabled) {
+    background: #30363d;
+    border-color: #8b949e;
+    color: #ffffff;
 }
 
-/* ============================================================
-   WEBSITE + IMAGE ZOOM CONTROLS
-   ============================================================ */
+
+.actions > button:disabled {
+    opacity: 0.45;
+
+    cursor: not-allowed;
+}
+
+
+/*
+    ============================================================
+    WEBSITE ZOOM CONTROLS
+    ============================================================
+*/
 
 .zoom-controls,
 .image-zoom-controls {
     display: flex;
+
     align-items: center;
-    gap: 4px;
+
+    border: 1px solid #30363d;
+
+    border-radius: 6px;
+
+    overflow: hidden;
+
+    background: #21262d;
 }
 
 
 .zoom-controls button,
 .image-zoom-controls button {
-    min-width: 32px;
     height: 30px;
 
-    padding: 4px 8px;
+    min-width: 32px;
 
-    border: 1px solid #30363d;
-    border-radius: 6px;
+    padding: 0 9px;
 
-    background: #21262d;
-    color: #e6edf3;
+    border: 0;
+
+    border-right: 1px solid #30363d;
+
+    background: transparent;
+
+    color: #c9d1d9;
+
+    font-family: inherit;
 
     font-size: 13px;
 
     cursor: pointer;
+
+    transition:
+        background 0.15s ease,
+        color 0.15s ease;
 }
 
 
 .zoom-controls button:hover,
 .image-zoom-controls button:hover {
     background: #30363d;
+
+    color: #ffffff;
 }
 
 
-#websiteZoomReset,
-#imageZoomReset {
+.zoom-controls button:last-child,
+.image-zoom-controls button:last-child {
+    border-right: 0;
+}
+
+
+#websiteZoomReset {
     min-width: 52px;
 
-    font-family:
-        "SFMono-Regular",
-        Consolas,
-        "Liberation Mono",
-        monospace;
+    font-size: 12px;
+
+    color: #f0f6fc;
 }
 
-
-/* ============================================================
-   IMAGE PREVIEW
-   ============================================================ */
 
 /*
-    IMPORTANT:
-    The image preview stays completely hidden until
-    JavaScript opens an image file.
+    ============================================================
+    EDITOR CONTAINER
+    ============================================================
 */
 
-.image-preview[hidden] {
-    display: none !important;
-}
-
-
-.image-preview {
+.editor-container {
     flex: 1;
 
     min-width: 0;
     min-height: 0;
-
-    display: flex;
-    flex-direction: column;
 
     overflow: hidden;
 
@@ -797,20 +569,204 @@ body {
 }
 
 
-.image-preview-toolbar {
-    min-height: 44px;
+.editor-wrapper {
+    position: relative;
 
-    padding: 0 14px;
+    width: 100%;
+    height: 100%;
+
+    min-width: 0;
+    min-height: 0;
+
+    overflow: hidden;
+
+    background: #0d1117;
+}
+
+
+/*
+    ============================================================
+    LINE NUMBERS
+    ============================================================
+*/
+
+.line-numbers {
+    position: absolute;
+
+    top: 0;
+    left: 0;
+    bottom: 0;
+
+    width: 60px;
+
+    padding-top: 16px;
+    padding-right: 12px;
+
+    overflow: hidden;
+
+    background: #0d1117;
+
+    border-right: 1px solid #21262d;
+
+    color: #6e7681;
+
+    font-family:
+        "SFMono-Regular",
+        Consolas,
+        "Liberation Mono",
+        Menlo,
+        monospace;
+
+    font-size: 13px;
+
+    line-height: 20px;
+
+    text-align: right;
+
+    user-select: none;
+
+    pointer-events: none;
+
+    white-space: pre;
+}
+
+
+/*
+    ============================================================
+    CODE EDITOR
+    ============================================================
+*/
+
+#codeEditor {
+    position: absolute;
+
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 60px;
+
+    width: calc(100% - 60px);
+    height: 100%;
+
+    margin: 0;
+
+    padding: 16px;
+
+    border: 0;
+
+    outline: 0;
+
+    resize: none;
+
+    background: #0d1117;
+
+    color: #e6edf3;
+
+    caret-color: #58a6ff;
+
+    font-family:
+        "SFMono-Regular",
+        Consolas,
+        "Liberation Mono",
+        Menlo,
+        monospace;
+
+    font-size: 13px;
+
+    line-height: 20px;
+
+    tab-size: 4;
+
+    white-space: pre;
+
+    overflow: auto;
+}
+
+
+#codeEditor:disabled {
+    opacity: 1;
+
+    color: #e6edf3;
+
+    -webkit-text-fill-color: #e6edf3;
+}
+
+
+#codeEditor::selection {
+    background: rgba(56, 139, 253, 0.35);
+}
+
+
+/*
+    ============================================================
+    IMAGE PREVIEW
+
+    IMPORTANT:
+    The [hidden] rule MUST override display:flex.
+
+    Without this rule, the browser's hidden attribute
+    can be defeated by .image-preview { display:flex; }.
+    ============================================================
+*/
+
+.image-preview {
+    position: absolute;
+
+    inset: 0;
 
     display: flex;
+
+    flex-direction: column;
+
+    background: #0d1117;
+
+    z-index: 10;
+}
+
+
+.image-preview[hidden] {
+    display: none !important;
+}
+
+
+/*
+    ============================================================
+    IMAGE PREVIEW TOOLBAR
+    ============================================================
+*/
+
+.image-preview-toolbar {
+    height: 50px;
+    min-height: 50px;
+
+    display: flex;
+
     align-items: center;
+
     justify-content: space-between;
 
     gap: 12px;
 
-    border-bottom: 1px solid #30363d;
+    padding: 0 12px;
 
     background: #161b22;
+
+    border-bottom: 1px solid #30363d;
+
+    z-index: 20;
+}
+
+
+#imageFileName {
+    min-width: 0;
+
+    flex: 1;
+
+    overflow: hidden;
+
+    text-overflow: ellipsis;
+
+    white-space: nowrap;
 
     color: #c9d1d9;
 
@@ -818,75 +774,113 @@ body {
 }
 
 
-.image-preview-toolbar a {
+/*
+    ============================================================
+    IMAGE ZOOM CONTROLS
+    ============================================================
+*/
+
+.image-zoom-controls {
+    flex-shrink: 0;
+}
+
+
+#imageZoomReset {
+    min-width: 56px;
+
+    color: #f0f6fc;
+
+    font-size: 12px;
+}
+
+
+/*
+    ============================================================
+    OPEN IMAGE LINK
+    ============================================================
+*/
+
+#imageRawLink {
+    display: inline-flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    height: 30px;
+
+    padding: 0 11px;
+
     color: #58a6ff;
 
     text-decoration: none;
 
+    font-size: 12px;
+
     white-space: nowrap;
+
+    border-left: 1px solid #30363d;
+
+    transition:
+        background 0.15s ease,
+        color 0.15s ease;
 }
 
 
-.image-preview-toolbar a:hover {
-    text-decoration: underline;
+#imageRawLink:hover {
+    background: #30363d;
+
+    color: #79c0ff;
 }
 
 
 /*
-    Image area.
+    ============================================================
+    IMAGE PREVIEW STAGE
+    ============================================================
 */
 
 .image-preview-stage {
+    position: relative;
+
     flex: 1;
 
+    min-width: 0;
     min-height: 0;
 
-    padding: 24px;
-
-    overflow: auto;
+    overflow: hidden;
 
     display: flex;
 
-    align-items: flex-start;
-    justify-content: flex-start;
+    align-items: center;
+
+    justify-content: center;
 
     background:
-        linear-gradient(
-            45deg,
-            #161b22 25%,
-            transparent 25%
-        ),
-        linear-gradient(
-            -45deg,
-            #161b22 25%,
-            transparent 25%
-        ),
-        linear-gradient(
-            45deg,
-            transparent 75%,
-            #161b22 75%
-        ),
-        linear-gradient(
-            -45deg,
-            transparent 75%,
-            #161b22 75%
+        radial-gradient(
+            circle at center,
+            #161b22 0,
+            #0d1117 70%
         );
 
-    background-size: 24px 24px;
+    user-select: none;
 
-    background-position:
-        0 0,
-        0 12px,
-        12px -12px,
-        -12px 0;
+    cursor: default;
 }
 
 
 /*
-    Actual image.
+    ============================================================
+    PREVIEW IMAGE
 
-    max-width/max-height are removed so the
-    JavaScript zoom can make the image larger.
+    The image itself is transformed using:
+    translate + scale.
+
+    This lets JavaScript control:
+    - zoom
+    - horizontal position
+    - vertical position
+    ============================================================
 */
 
 #previewImage {
@@ -900,53 +894,191 @@ body {
 
     object-fit: contain;
 
-    transform-origin: top left;
+    transform:
+        translate3d(0, 0, 0)
+        scale(1);
 
-    transition:
-        transform 0.12s ease;
+    transform-origin: center center;
 
-    cursor: zoom-in;
+    user-select: none;
 
-    border-radius: 6px;
+    -webkit-user-select: none;
 
-    box-shadow:
-        0 10px 35px
-        rgba(0, 0, 0, 0.35);
+    -webkit-user-drag: none;
+
+    will-change: transform;
+
+    transition: none;
+
+    cursor: default;
+
+    touch-action: none;
 }
 
 
-/* ============================================================
-   MOBILE
-   ============================================================ */
+#previewImage.is-dragging {
+    cursor: grabbing;
 
-@media (max-width: 700px) {
+    transition: none;
+}
 
-    .zoom-controls button,
-    .image-zoom-controls button {
+
+/*
+    ============================================================
+    STATUS BAR
+    ============================================================
+*/
+
+.statusbar {
+    height: 30px;
+    min-height: 30px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: 12px;
+
+    padding: 0 12px;
+
+    background: #161b22;
+
+    border-top: 1px solid #30363d;
+
+    color: #8b949e;
+
+    font-size: 12px;
+}
+
+
+#statusText,
+#cursorPosition {
+    overflow: hidden;
+
+    text-overflow: ellipsis;
+
+    white-space: nowrap;
+}
+
+
+/*
+    ============================================================
+    BUTTON FOCUS
+    ============================================================
+*/
+
+button:focus-visible,
+a:focus-visible {
+    outline: 2px solid #58a6ff;
+
+    outline-offset: 2px;
+}
+
+
+/*
+    ============================================================
+    MOBILE / SMALL SCREENS
+    ============================================================
+*/
+
+@media (max-width: 800px) {
+
+    .sidebar {
+        width: 220px;
+        min-width: 180px;
+    }
+
+
+    .topbar {
+        padding: 0 10px;
+
+        gap: 8px;
+    }
+
+
+    .actions {
+        gap: 5px;
+    }
+
+
+    .actions > button {
+        padding: 0 9px;
+    }
+
+
+    .zoom-controls button {
         min-width: 28px;
 
-        height: 28px;
-
-        padding: 3px 6px;
+        padding: 0 7px;
     }
 
 
-    .zoom-controls {
-        gap: 2px;
-    }
-
-
-    .image-preview-stage {
-        padding: 12px;
+    #websiteZoomReset {
+        min-width: 46px;
     }
 
 
     .image-preview-toolbar {
-        min-height: 40px;
+        padding: 0 8px;
 
-        padding: 0 10px;
+        gap: 6px;
+    }
+
+
+    #imageRawLink {
+        padding: 0 8px;
+    }
+}
+
+
+@media (max-width: 600px) {
+
+    .sidebar {
+        width: 190px;
+        min-width: 160px;
+    }
+
+
+    .sidebar-header h1 {
+        font-size: 14px;
+    }
+
+
+    .file-item,
+    .folder-item {
+        font-size: 12px;
+    }
+
+
+    #currentFile {
+        font-size: 12px;
+    }
+
+
+    .actions > button {
+        padding: 0 7px;
 
         font-size: 12px;
     }
 
+
+    .image-preview-toolbar {
+        height: auto;
+        min-height: 50px;
+
+        padding-top: 6px;
+        padding-bottom: 6px;
+    }
+
+
+    #imageFileName {
+        display: none;
+    }
+
+
+    .statusbar {
+        font-size: 11px;
+    }
 }
