@@ -26,22 +26,10 @@ const refreshButton = document.getElementById("refreshButton");
 const statusText = document.getElementById("statusText");
 const cursorPosition = document.getElementById("cursorPosition");
 
-
-/*
-    Image preview elements.
-    These only work when your HTML contains the image
-    preview section.
-*/
-
 const imagePreview = document.getElementById("imagePreview");
 const previewImage = document.getElementById("previewImage");
 const imageFileName = document.getElementById("imageFileName");
 const imageRawLink = document.getElementById("imageRawLink");
-
-
-/*
-    Website zoom controls.
-*/
 
 const websiteZoomOut =
     document.getElementById("websiteZoomOut");
@@ -51,11 +39,6 @@ const websiteZoomReset =
 
 const websiteZoomIn =
     document.getElementById("websiteZoomIn");
-
-
-/*
-    Image zoom controls.
-*/
 
 const imageZoomOut =
     document.getElementById("imageZoomOut");
@@ -74,9 +57,7 @@ const imageZoomIn =
 */
 
 let files = [];
-
 let selectedFile = null;
-
 let originalCode = "";
 
 
@@ -93,11 +74,23 @@ let websiteZoom =
 
 
 /*
-    Image zoom is reset to 100% whenever
-    a new image is opened.
+    ============================================================
+    IMAGE ZOOM + PAN STATE
+    ============================================================
 */
 
 let imageZoom = 100;
+
+let imagePositionX = 0;
+let imagePositionY = 0;
+
+let isDraggingImage = false;
+
+let dragStartX = 0;
+let dragStartY = 0;
+
+let dragStartPositionX = 0;
+let dragStartPositionY = 0;
 
 
 /*
@@ -110,10 +103,8 @@ const HIDDEN_FILES = [
     "index.html",
     "style.css",
     "script.js",
-
     "README.md",
     "README",
-
     "LICENSE",
     "LICENSE.md",
     "LICENSE.txt"
@@ -161,10 +152,6 @@ function isImageFile(fileName) {
 
 function setWebsiteZoom(value) {
 
-    /*
-        Keep website zoom between 70% and 150%.
-    */
-
     websiteZoom =
         Math.min(
             150,
@@ -174,30 +161,14 @@ function setWebsiteZoom(value) {
             )
         );
 
-
-    /*
-        Zoom the complete website.
-    */
-
     document.body.style.zoom =
         `${websiteZoom}%`;
-
-
-    /*
-        Update button text.
-    */
 
     if (websiteZoomReset) {
 
         websiteZoomReset.textContent =
             `${websiteZoom}%`;
-
     }
-
-
-    /*
-        Remember the zoom.
-    */
 
     localStorage.setItem(
         "website-zoom",
@@ -208,15 +179,38 @@ function setWebsiteZoom(value) {
 
 /*
     ============================================================
+    UPDATE IMAGE TRANSFORM
+    ============================================================
+*/
+
+function updateImageTransform() {
+
+    if (!previewImage) {
+        return;
+    }
+
+    const scale =
+        imageZoom / 100;
+
+    previewImage.style.transform =
+        `translate3d(${imagePositionX}px, ${imagePositionY}px, 0) ` +
+        `scale(${scale})`;
+}
+
+
+/*
+    ============================================================
     IMAGE ZOOM
     ============================================================
 */
 
-function setImageZoom(value) {
+function setImageZoom(
+    value,
+    keepPosition = true
+) {
 
-    /*
-        Keep image zoom between 25% and 400%.
-    */
+    const oldZoom =
+        imageZoom;
 
     imageZoom =
         Math.min(
@@ -227,37 +221,85 @@ function setImageZoom(value) {
             )
         );
 
+    /*
+        If the image is being returned to 100%,
+        center it automatically.
+    */
+
+    if (
+        imageZoom === 100 &&
+        oldZoom !== 100
+    ) {
+
+        imagePositionX = 0;
+        imagePositionY = 0;
+    }
 
     /*
-        If image exists, scale it.
+        If requested, preserve the current
+        image position while zooming.
     */
+
+    if (!keepPosition) {
+
+        imagePositionX = 0;
+        imagePositionY = 0;
+    }
+
+    updateImageTransform();
 
     if (previewImage) {
 
-        previewImage.style.transform =
-            `scale(${imageZoom / 100})`;
+        if (imageZoom > 100) {
 
+            previewImage.style.cursor =
+                isDraggingImage
+                    ? "grabbing"
+                    : "grab";
+        }
 
-        /*
-            Change mouse cursor.
-        */
+        else {
 
-        previewImage.style.cursor =
-            imageZoom > 100
-                ? "zoom-out"
-                : "zoom-in";
+            previewImage.style.cursor =
+                "default";
+        }
     }
-
-
-    /*
-        Update percentage button.
-    */
 
     if (imageZoomReset) {
 
         imageZoomReset.textContent =
             `${imageZoom}%`;
+    }
+}
 
+
+/*
+    ============================================================
+    RESET IMAGE VIEW
+    ============================================================
+*/
+
+function resetImageView() {
+
+    imageZoom = 100;
+
+    imagePositionX = 0;
+    imagePositionY = 0;
+
+    isDraggingImage = false;
+
+    updateImageTransform();
+
+    if (imageZoomReset) {
+
+        imageZoomReset.textContent =
+            "100%";
+    }
+
+    if (previewImage) {
+
+        previewImage.style.cursor =
+            "default";
     }
 }
 
@@ -268,26 +310,24 @@ function setImageZoom(value) {
     ============================================================
 */
 
-async function getRepositoryFiles(path = "") {
+async function getRepositoryFiles(
+    path = ""
+) {
 
     const url =
         `https://api.github.com/repos/` +
         `${OWNER}/${REPO}/contents/${path}` +
         `?ref=${encodeURIComponent(BRANCH)}`;
 
-
     const response =
         await fetch(url);
-
 
     if (!response.ok) {
 
         throw new Error(
             `GitHub returned ${response.status}`
         );
-
     }
-
 
     return await response.json();
 }
@@ -301,12 +341,7 @@ async function getRepositoryFiles(path = "") {
 
 async function loadFiles() {
 
-    /*
-        Hide any image that may currently be open.
-    */
-
     hideImage();
-
 
     fileList.innerHTML = `
         <div class="loading">
@@ -314,9 +349,7 @@ async function loadFiles() {
         </div>
     `;
 
-
     files = [];
-
 
     try {
 
@@ -324,33 +357,23 @@ async function loadFiles() {
             ROOT_FOLDER
         );
 
-
-        /*
-            Remove hidden files.
-        */
-
         files =
-            files.filter(file => {
+            files.filter(
+                file => {
 
-                const fileName =
-                    file.path
-                        .split("/")
-                        .pop()
-                        .toLowerCase();
+                    const fileName =
+                        file.path
+                            .split("/")
+                            .pop()
+                            .toLowerCase();
 
-
-                return !HIDDEN_FILES.some(
-                    hidden =>
-                        hidden.toLowerCase() ===
-                        fileName
-                );
-
-            });
-
-
-        /*
-            Sort files.
-        */
+                    return !HIDDEN_FILES.some(
+                        hidden =>
+                            hidden.toLowerCase() ===
+                            fileName
+                    );
+                }
+            );
 
         files.sort(
             (a, b) =>
@@ -364,17 +387,7 @@ async function loadFiles() {
                 )
         );
 
-
-        /*
-            Build explorer.
-        */
-
         buildFileTree();
-
-
-        /*
-            No files.
-        */
 
         if (files.length === 0) {
 
@@ -384,14 +397,11 @@ async function loadFiles() {
                 </div>
             `;
 
-
             statusText.textContent =
                 "No files found";
 
-
             return;
         }
-
 
         statusText.textContent =
             `${files.length} file(s) found`;
@@ -402,7 +412,6 @@ async function loadFiles() {
 
         console.error(error);
 
-
         fileList.innerHTML = `
             <div class="error">
                 Could not load GitHub files.
@@ -412,10 +421,8 @@ async function loadFiles() {
             </div>
         `;
 
-
         statusText.textContent =
             "Error loading files";
-
     }
 }
 
@@ -426,45 +433,32 @@ async function loadFiles() {
     ============================================================
 */
 
-async function scanDirectory(path) {
+async function scanDirectory(
+    path
+) {
 
     const items =
-        await getRepositoryFiles(path);
-
+        await getRepositoryFiles(
+            path
+        );
 
     for (const item of items) {
-
-        /*
-            FILE
-        */
 
         if (item.type === "file") {
 
             files.push({
-
                 name: item.name,
-
                 path: item.path,
-
                 download_url: item.download_url
-
             });
-
         }
-
-
-        /*
-            DIRECTORY
-        */
 
         else if (item.type === "dir") {
 
             await scanDirectory(
                 item.path
             );
-
         }
-
     }
 }
 
@@ -479,29 +473,18 @@ function buildFileTree() {
 
     fileList.innerHTML = "";
 
-
     const root = {
-
         folders: {},
-
         files: []
-
     };
-
-
-    /*
-        Put files into tree.
-    */
 
     for (const file of files) {
 
         const parts =
             file.path.split("/");
 
-
         let current =
             root;
-
 
         for (
             let i = 0;
@@ -512,32 +495,24 @@ function buildFileTree() {
             const folderName =
                 parts[i];
 
-
-            if (
-                !current.folders[folderName]
-            ) {
+            if (!current.folders[folderName]) {
 
                 current.folders[folderName] = {
-
                     folders: {},
-
                     files: []
-
                 };
-
             }
 
-
             current =
-                current.folders[folderName];
-
+                current.folders[
+                    folderName
+                ];
         }
 
-
-        current.files.push(file);
-
+        current.files.push(
+            file
+        );
     }
-
 
     renderTree(
         root,
@@ -559,10 +534,6 @@ function renderTree(
     depth
 ) {
 
-    /*
-        Sort folders.
-    */
-
     const folders =
         Object.keys(
             node.folders
@@ -578,11 +549,6 @@ function renderTree(
                 )
         );
 
-
-    /*
-        Sort files.
-    */
-
     const sortedFiles =
         [...node.files].sort(
             (a, b) =>
@@ -596,139 +562,89 @@ function renderTree(
                 )
         );
 
-
-    /*
-        ========================================================
-        FOLDERS
-        ========================================================
-    */
-
     for (
         const folderName of folders
     ) {
 
         const folder =
-            node.folders[folderName];
-
+            node.folders[
+                folderName
+            ];
 
         const folderWrapper =
             document.createElement(
                 "div"
             );
 
-
         folderWrapper.className =
             "folder-wrapper";
-
-
-        /*
-            Folder button.
-        */
 
         const folderButton =
             document.createElement(
                 "button"
             );
 
-
         folderButton.className =
             "folder-item";
 
-
         folderButton.style.paddingLeft =
             `${10 + depth * 18}px`;
-
-
-        /*
-            Arrow.
-        */
 
         const arrow =
             document.createElement(
                 "span"
             );
 
-
         arrow.className =
             "folder-arrow";
 
-
         arrow.textContent =
             "▶";
-
-
-        /*
-            Folder icon.
-        */
 
         const icon =
             document.createElement(
                 "span"
             );
 
-
         icon.className =
             "folder-icon";
 
-
         icon.textContent =
             "📁";
-
-
-        /*
-            Folder name.
-        */
 
         const name =
             document.createElement(
                 "span"
             );
 
-
         name.className =
             "folder-name";
 
-
         name.textContent =
             folderName;
-
 
         folderButton.appendChild(
             arrow
         );
 
-
         folderButton.appendChild(
             icon
         );
 
-
         folderButton.appendChild(
             name
         );
-
-
-        /*
-            Folder children.
-        */
 
         const children =
             document.createElement(
                 "div"
             );
 
-
         children.className =
             "folder-children";
 
-
         children.style.display =
             "none";
-
-
-        /*
-            Open / close folder.
-        */
 
         folderButton.addEventListener(
             "click",
@@ -739,17 +655,14 @@ function renderTree(
                         "open"
                     );
 
-
                 if (isOpen) {
 
                     folderButton.classList.remove(
                         "open"
                     );
 
-
                     children.style.display =
                         "none";
-
                 }
 
                 else {
@@ -758,49 +671,30 @@ function renderTree(
                         "open"
                     );
 
-
                     children.style.display =
                         "block";
-
                 }
-
             }
         );
-
 
         folderWrapper.appendChild(
             folderButton
         );
 
-
         folderWrapper.appendChild(
             children
         );
 
-
         container.appendChild(
             folderWrapper
         );
-
-
-        /*
-            Render contents.
-        */
 
         renderTree(
             folder,
             children,
             depth + 1
         );
-
     }
-
-
-    /*
-        ========================================================
-        FILES
-        ========================================================
-    */
 
     for (
         const file of sortedFiles
@@ -811,91 +705,63 @@ function renderTree(
                 "button"
             );
 
-
         button.className =
             "file-item";
-
 
         button.style.paddingLeft =
             `${30 + depth * 18}px`;
 
-
-        /*
-            Store path.
-        */
-
         button.dataset.path =
             file.path;
-
-
-        /*
-            File icon.
-        */
 
         const icon =
             document.createElement(
                 "span"
             );
 
-
         icon.className =
             "file-icon";
 
-
         icon.textContent =
-            getFileIcon(file.name);
-
-
-        /*
-            File name.
-        */
+            getFileIcon(
+                file.name
+            );
 
         const name =
             document.createElement(
                 "span"
             );
 
-
         name.className =
             "file-name";
 
-
         name.textContent =
             file.name;
-
 
         button.appendChild(
             icon
         );
 
-
         button.appendChild(
             name
         );
 
-
         button.title =
             file.path;
-
-
-        /*
-            Open selected file.
-        */
 
         button.addEventListener(
             "click",
             () => {
 
-                openFile(file);
-
+                openFile(
+                    file
+                );
             }
         );
-
 
         container.appendChild(
             button
         );
-
     }
 }
 
@@ -906,7 +772,9 @@ function renderTree(
     ============================================================
 */
 
-function getFileIcon(fileName) {
+function getFileIcon(
+    fileName
+) {
 
     const extension =
         fileName
@@ -914,12 +782,10 @@ function getFileIcon(fileName) {
             .pop()
             .toLowerCase();
 
-
     const icons = {
 
         js: "🟨",
         jsx: "⚛️",
-
         ts: "🔷",
         tsx: "⚛️",
 
@@ -929,7 +795,6 @@ function getFileIcon(fileName) {
 
         c: "🔵",
         cpp: "🔵",
-
         h: "🔵",
         hpp: "🔵",
 
@@ -973,11 +838,12 @@ function getFileIcon(fileName) {
         bmp: "🖼️",
         ico: "🖼️",
         avif: "🖼️"
-
     };
 
-
-    return icons[extension] || "📄";
+    return (
+        icons[extension] ||
+        "📄"
+    );
 }
 
 
@@ -987,132 +853,108 @@ function getFileIcon(fileName) {
     ============================================================
 */
 
-async function openFile(file) {
+async function openFile(
+    file
+) {
 
     try {
 
         statusText.textContent =
             "Loading...";
 
-
         selectedFile =
             file;
-
 
         currentFile.textContent =
             file.path;
 
-
         highlightSelectedFile();
 
-
         /*
-            ====================================================
             IMAGE FILE
-            ====================================================
         */
 
         if (
-            isImageFile(file.name)
+            isImageFile(
+                file.name
+            )
         ) {
 
-            showImage(file);
+            showImage(
+                file
+            );
 
             return;
         }
 
-
         /*
-            ====================================================
-            NORMAL CODE / TEXT FILE
-            ====================================================
+            NORMAL FILE
         */
 
         hideImage();
-
 
         const response =
             await fetch(
                 file.download_url
             );
 
-
         if (!response.ok) {
 
             throw new Error(
                 "Could not download file."
             );
-
         }
-
 
         const code =
             await response.text();
 
-
         originalCode =
             code;
-
-
-        /*
-            Load local edited version.
-        */
 
         const savedCode =
             localStorage.getItem(
                 `code-editor-${file.path}`
             );
 
-
-        if (savedCode !== null) {
+        if (
+            savedCode !== null
+        ) {
 
             codeEditor.value =
                 savedCode;
-
         }
 
         else {
 
             codeEditor.value =
                 code;
-
         }
-
-
-        /*
-            Enable editor.
-        */
 
         codeEditor.disabled =
             false;
 
-
         copyButton.disabled =
             false;
 
-
         resetButton.disabled =
             false;
-
 
         updateLineNumbers();
 
         updateCursorPosition();
 
-
         statusText.textContent =
             "Loaded";
-
     }
 
     catch (error) {
 
-        console.error(error);
-
+        console.error(
+            error
+        );
 
         statusText.textContent =
             "Could not load file";
-
     }
 }
 
@@ -1123,11 +965,9 @@ async function openFile(file) {
     ============================================================
 */
 
-function showImage(file) {
-
-    /*
-        Safety check.
-    */
+function showImage(
+    file
+) {
 
     if (
         !imagePreview ||
@@ -1141,7 +981,6 @@ function showImage(file) {
         return;
     }
 
-
     /*
         Hide code editor.
     */
@@ -1149,10 +988,8 @@ function showImage(file) {
     codeEditor.style.display =
         "none";
 
-
     lineNumbers.style.display =
         "none";
-
 
     /*
         Disable code buttons.
@@ -1161,81 +998,71 @@ function showImage(file) {
     codeEditor.disabled =
         true;
 
-
     copyButton.disabled =
         true;
-
 
     resetButton.disabled =
         true;
 
+    /*
+        Reset zoom and position
+        for newly selected image.
+    */
+
+    resetImageView();
 
     /*
-        ONLY NOW show the image area.
+        Show image preview.
     */
 
     imagePreview.hidden =
         false;
 
-
-    /*
-        Every newly selected image
-        starts at 100%.
-    */
-
-    setImageZoom(100);
-
-
-    /*
-        Show file name.
-    */
-
     if (imageFileName) {
 
         imageFileName.textContent =
             file.path;
-
     }
 
-
     /*
-        Load image directly from GitHub.
+        GitHub direct image URL.
     */
 
     previewImage.src =
         file.download_url;
 
-
     previewImage.alt =
         file.name;
-
-
-    /*
-        Open image link.
-    */
 
     if (imageRawLink) {
 
         imageRawLink.href =
             file.download_url;
-
     }
-
 
     statusText.textContent =
         "Image preview";
 
-
     /*
-        Image error.
+        Update cursor after image loads.
     */
+
+    previewImage.onload =
+        () => {
+
+            updateImageTransform();
+
+            previewImage.style.cursor =
+                imageZoom > 100
+                    ? "grab"
+                    : "default";
+        };
 
     previewImage.onerror =
         () => {
 
             statusText.textContent =
                 "Could not display image";
-
         };
 }
 
@@ -1248,11 +1075,6 @@ function showImage(file) {
 
 function hideImage() {
 
-    /*
-        If image elements don't exist,
-        simply restore editor.
-    */
-
     if (!imagePreview) {
 
         codeEditor.style.display =
@@ -1264,17 +1086,22 @@ function hideImage() {
         return;
     }
 
+    /*
+        Stop any active drag.
+    */
+
+    isDraggingImage =
+        false;
 
     /*
-        Completely hide image preview.
+        Hide image preview.
     */
 
     imagePreview.hidden =
         true;
 
-
     /*
-        Remove previous image.
+        Remove image source.
     */
 
     if (previewImage) {
@@ -1284,53 +1111,303 @@ function hideImage() {
         );
 
         previewImage.style.transform =
-            "scale(1)";
+            "translate3d(0, 0, 0) scale(1)";
 
+        previewImage.style.cursor =
+            "default";
     }
 
-
     /*
-        Reset image zoom.
+        Reset image state.
     */
 
-    imageZoom =
-        100;
+    imageZoom = 100;
 
+    imagePositionX = 0;
+    imagePositionY = 0;
 
     if (imageZoomReset) {
 
         imageZoomReset.textContent =
             "100%";
-
     }
 
-
     /*
-        Reset image link.
+        Reset raw image link.
     */
 
     if (imageRawLink) {
 
         imageRawLink.href =
             "#";
-
     }
 
-
     /*
-        Bring code editor back.
+        Restore editor.
     */
 
     codeEditor.style.display =
         "";
 
-
     lineNumbers.style.display =
         "";
 
-
     codeEditor.disabled =
         false;
+}
+
+
+/*
+    ============================================================
+    IMAGE DRAG / PAN
+    ============================================================
+*/
+
+if (previewImage) {
+
+    /*
+        Start dragging.
+    */
+
+    previewImage.addEventListener(
+        "mousedown",
+        event => {
+
+            /*
+                Only left mouse button.
+            */
+
+            if (
+                event.button !== 0
+            ) {
+                return;
+            }
+
+            /*
+                Do not drag at 100% or below.
+            */
+
+            if (
+                imageZoom <= 100
+            ) {
+                return;
+            }
+
+            event.preventDefault();
+
+            isDraggingImage =
+                true;
+
+            dragStartX =
+                event.clientX;
+
+            dragStartY =
+                event.clientY;
+
+            dragStartPositionX =
+                imagePositionX;
+
+            dragStartPositionY =
+                imagePositionY;
+
+            previewImage.style.cursor =
+                "grabbing";
+
+            previewImage.classList.add(
+                "is-dragging"
+            );
+        }
+    );
+
+
+    /*
+        Move image while dragging.
+    */
+
+    document.addEventListener(
+        "mousemove",
+        event => {
+
+            if (
+                !isDraggingImage
+            ) {
+                return;
+            }
+
+            event.preventDefault();
+
+            const deltaX =
+                event.clientX -
+                dragStartX;
+
+            const deltaY =
+                event.clientY -
+                dragStartY;
+
+            imagePositionX =
+                dragStartPositionX +
+                deltaX;
+
+            imagePositionY =
+                dragStartPositionY +
+                deltaY;
+
+            updateImageTransform();
+        }
+    );
+
+
+    /*
+        Stop dragging.
+    */
+
+    document.addEventListener(
+        "mouseup",
+        () => {
+
+            if (
+                !isDraggingImage
+            ) {
+                return;
+            }
+
+            isDraggingImage =
+                false;
+
+            previewImage.classList.remove(
+                "is-dragging"
+            );
+
+            previewImage.style.cursor =
+                imageZoom > 100
+                    ? "grab"
+                    : "default";
+        }
+    );
+
+
+    /*
+        Prevent browser image dragging.
+    */
+
+    previewImage.addEventListener(
+        "dragstart",
+        event => {
+
+            event.preventDefault();
+        }
+    );
+}
+
+
+/*
+    ============================================================
+    IMAGE MOUSE-WHEEL ZOOM
+    ============================================================
+*/
+
+if (imagePreview) {
+
+    imagePreview.addEventListener(
+        "wheel",
+        event => {
+
+            if (
+                imagePreview.hidden
+            ) {
+                return;
+            }
+
+            event.preventDefault();
+
+            /*
+                Normal wheel:
+                25% steps.
+
+                Ctrl + wheel:
+                10% steps for finer control.
+            */
+
+            const step =
+                event.ctrlKey
+                    ? 10
+                    : 25;
+
+            if (
+                event.deltaY < 0
+            ) {
+
+                setImageZoom(
+                    imageZoom + step
+                );
+            }
+
+            else {
+
+                setImageZoom(
+                    imageZoom - step
+                );
+            }
+
+        },
+        {
+            passive: false
+        }
+    );
+}
+
+
+/*
+    ============================================================
+    IMAGE ZOOM BUTTONS
+    ============================================================
+*/
+
+if (imageZoomOut) {
+
+    imageZoomOut.addEventListener(
+        "click",
+        event => {
+
+            event.stopPropagation();
+
+            setImageZoom(
+                imageZoom - 25
+            );
+        }
+    );
+}
+
+
+if (imageZoomIn) {
+
+    imageZoomIn.addEventListener(
+        "click",
+        event => {
+
+            event.stopPropagation();
+
+            setImageZoom(
+                imageZoom + 25
+            );
+        }
+    );
+}
+
+
+if (imageZoomReset) {
+
+    imageZoomReset.addEventListener(
+        "click",
+        event => {
+
+            event.stopPropagation();
+
+            setImageZoom(
+                100
+            );
+        }
+    );
 }
 
 
@@ -1347,14 +1424,12 @@ function highlightSelectedFile() {
             ".file-item"
         );
 
-
     buttons.forEach(
         button => {
 
             button.classList.remove(
                 "active"
             );
-
 
             if (
                 selectedFile &&
@@ -1365,9 +1440,7 @@ function highlightSelectedFile() {
                 button.classList.add(
                     "active"
                 );
-
             }
-
         }
     );
 }
@@ -1386,10 +1459,8 @@ copyButton.addEventListener(
         if (
             codeEditor.disabled
         ) {
-
             return;
         }
-
 
         try {
 
@@ -1397,10 +1468,8 @@ copyButton.addEventListener(
                 codeEditor.value
             );
 
-
             statusText.textContent =
                 "Copied!";
-
 
             setTimeout(
                 () => {
@@ -1418,17 +1487,13 @@ copyButton.addEventListener(
 
             codeEditor.select();
 
-
             document.execCommand(
                 "copy"
             );
 
-
             statusText.textContent =
                 "Copied!";
-
         }
-
     }
 );
 
@@ -1445,30 +1510,26 @@ resetButton.addEventListener(
 
         if (
             !selectedFile ||
-            isImageFile(selectedFile.name)
+            isImageFile(
+                selectedFile.name
+            )
         ) {
-
             return;
         }
 
-
         codeEditor.value =
             originalCode;
-
 
         localStorage.removeItem(
             `code-editor-${selectedFile.path}`
         );
 
-
         updateLineNumbers();
 
         updateCursorPosition();
 
-
         statusText.textContent =
             "Reset to original";
-
     }
 );
 
@@ -1485,25 +1546,22 @@ codeEditor.addEventListener(
 
         if (
             !selectedFile ||
-            isImageFile(selectedFile.name)
+            isImageFile(
+                selectedFile.name
+            )
         ) {
-
             return;
         }
-
 
         localStorage.setItem(
             `code-editor-${selectedFile.path}`,
             codeEditor.value
         );
 
-
         updateLineNumbers();
-
 
         statusText.textContent =
             "Edited";
-
     }
 );
 
@@ -1521,25 +1579,19 @@ codeEditor.addEventListener(
         if (
             event.key !== "Tab"
         ) {
-
             return;
         }
 
-
         event.preventDefault();
-
 
         const start =
             codeEditor.selectionStart;
 
-
         const end =
             codeEditor.selectionEnd;
 
-
         const value =
             codeEditor.value;
-
 
         codeEditor.value =
             value.substring(
@@ -1551,19 +1603,15 @@ codeEditor.addEventListener(
                 end
             );
 
-
         codeEditor.selectionStart =
             start + 4;
-
 
         codeEditor.selectionEnd =
             start + 4;
 
-
         codeEditor.dispatchEvent(
             new Event("input")
         );
-
     }
 );
 
@@ -1581,9 +1629,7 @@ function updateLineNumbers() {
             .split("\n")
             .length;
 
-
     let numbers = "";
-
 
     for (
         let i = 1;
@@ -1593,9 +1639,7 @@ function updateLineNumbers() {
 
         numbers +=
             i + "\n";
-
     }
-
 
     lineNumbers.textContent =
         numbers;
@@ -1614,7 +1658,6 @@ codeEditor.addEventListener(
 
         lineNumbers.scrollTop =
             codeEditor.scrollTop;
-
     }
 );
 
@@ -1630,29 +1673,24 @@ function updateCursorPosition() {
     const position =
         codeEditor.selectionStart;
 
-
     const beforeCursor =
         codeEditor.value.substring(
             0,
             position
         );
 
-
     const lines =
         beforeCursor.split(
             "\n"
         );
 
-
     const line =
         lines.length;
-
 
     const column =
         lines[
             lines.length - 1
         ].length + 1;
-
 
     cursorPosition.textContent =
         `Ln ${line}, Col ${column}`;
@@ -1692,10 +1730,8 @@ if (websiteZoomOut) {
             setWebsiteZoom(
                 websiteZoom - 10
             );
-
         }
     );
-
 }
 
 
@@ -1708,10 +1744,8 @@ if (websiteZoomIn) {
             setWebsiteZoom(
                 websiteZoom + 10
             );
-
         }
     );
-
 }
 
 
@@ -1721,182 +1755,11 @@ if (websiteZoomReset) {
         "click",
         () => {
 
-            setWebsiteZoom(100);
-
-        }
-    );
-
-}
-
-
-/*
-    ============================================================
-    IMAGE ZOOM BUTTONS
-    ============================================================
-*/
-
-if (imageZoomOut) {
-
-    imageZoomOut.addEventListener(
-        "click",
-        event => {
-
-            /*
-                Prevent toolbar click from
-                affecting anything else.
-            */
-
-            event.stopPropagation();
-
-
-            setImageZoom(
-                imageZoom - 25
+            setWebsiteZoom(
+                100
             );
-
         }
     );
-
-}
-
-
-if (imageZoomIn) {
-
-    imageZoomIn.addEventListener(
-        "click",
-        event => {
-
-            event.stopPropagation();
-
-
-            setImageZoom(
-                imageZoom + 25
-            );
-
-        }
-    );
-
-}
-
-
-if (imageZoomReset) {
-
-    imageZoomReset.addEventListener(
-        "click",
-        event => {
-
-            event.stopPropagation();
-
-
-            setImageZoom(100);
-
-        }
-    );
-
-}
-
-
-/*
-    ============================================================
-    IMAGE MOUSE-WHEEL ZOOM
-    ============================================================
-*/
-
-if (imagePreview) {
-
-    imagePreview.addEventListener(
-        "wheel",
-        event => {
-
-            /*
-                Don't do anything if image isn't open.
-            */
-
-            if (
-                imagePreview.hidden
-            ) {
-
-                return;
-            }
-
-
-            /*
-                Only zoom when mouse is
-                over the image preview.
-            */
-
-            event.preventDefault();
-
-
-            const step =
-                event.ctrlKey
-                    ? 10
-                    : 25;
-
-
-            if (
-                event.deltaY < 0
-            ) {
-
-                setImageZoom(
-                    imageZoom + step
-                );
-
-            }
-
-            else {
-
-                setImageZoom(
-                    imageZoom - step
-                );
-
-            }
-
-        },
-        {
-            passive: false
-        }
-    );
-
-}
-
-
-/*
-    ============================================================
-    IMAGE CLICK ZOOM
-    ============================================================
-*/
-
-if (previewImage) {
-
-    previewImage.addEventListener(
-        "click",
-        event => {
-
-            event.stopPropagation();
-
-
-            /*
-                100% -> 200%
-                200% -> 100%
-            */
-
-            if (
-                imageZoom === 100
-            ) {
-
-                setImageZoom(200);
-
-            }
-
-            else {
-
-                setImageZoom(100);
-
-            }
-
-        }
-    );
-
 }
 
 
@@ -1911,7 +1774,7 @@ document.addEventListener(
     event => {
 
         /*
-            Ctrl + + = website zoom in
+            Website zoom.
         */
 
         if (
@@ -1924,17 +1787,11 @@ document.addEventListener(
 
             event.preventDefault();
 
-
             setWebsiteZoom(
                 websiteZoom + 10
             );
-
         }
 
-
-        /*
-            Ctrl + - = website zoom out
-        */
 
         if (
             event.ctrlKey &&
@@ -1943,17 +1800,11 @@ document.addEventListener(
 
             event.preventDefault();
 
-
             setWebsiteZoom(
                 websiteZoom - 10
             );
-
         }
 
-
-        /*
-            Ctrl + 0 = website zoom reset
-        */
 
         if (
             event.ctrlKey &&
@@ -1962,11 +1813,10 @@ document.addEventListener(
 
             event.preventDefault();
 
-
-            setWebsiteZoom(100);
-
+            setWebsiteZoom(
+                100
+            );
         }
-
     }
 );
 
@@ -1983,7 +1833,8 @@ refreshButton.addEventListener(
 
         hideImage();
 
-        selectedFile = null;
+        selectedFile =
+            null;
 
         currentFile.textContent =
             "Select a file";
@@ -1995,14 +1846,13 @@ refreshButton.addEventListener(
             true;
 
         loadFiles();
-
     }
 );
 
 
 /*
     ============================================================
-    INITIALIZE ZOOM
+    INITIALIZE
     ============================================================
 */
 
@@ -2010,8 +1860,7 @@ setWebsiteZoom(
     websiteZoom
 );
 
-
-setImageZoom(100);
+resetImageView();
 
 
 /*
