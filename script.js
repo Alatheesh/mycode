@@ -43,6 +43,13 @@ const statusText =
 const cursorPosition =
     document.getElementById("cursorPosition");
 
+
+/*
+    ============================================================
+    IMAGE PREVIEW
+    ============================================================
+*/
+
 const imagePreview =
     document.getElementById("imagePreview");
 
@@ -91,11 +98,11 @@ const HIDDEN_FILES = [
 
 /*
     ============================================================
-    IMAGE FILE TYPES
+    IMAGE EXTENSIONS
     ============================================================
 */
 
-const IMAGE_EXTENSIONS = new Set([
+const IMAGE_EXTENSIONS = [
     "png",
     "jpg",
     "jpeg",
@@ -105,12 +112,8 @@ const IMAGE_EXTENSIONS = new Set([
     "bmp",
     "ico",
     "avif"
-]);
+];
 
-
-/*
-    Check whether a file is an image.
-*/
 
 function isImageFile(fileName) {
 
@@ -120,7 +123,9 @@ function isImageFile(fileName) {
             .pop()
             .toLowerCase();
 
-    return IMAGE_EXTENSIONS.has(extension);
+    return IMAGE_EXTENSIONS.includes(
+        extension
+    );
 }
 
 
@@ -137,8 +142,10 @@ async function getRepositoryFiles(path = "") {
         `${OWNER}/${REPO}/contents/${path}` +
         `?ref=${encodeURIComponent(BRANCH)}`;
 
+
     const response =
         await fetch(url);
+
 
     if (!response.ok) {
 
@@ -147,6 +154,7 @@ async function getRepositoryFiles(path = "") {
         );
 
     }
+
 
     return await response.json();
 }
@@ -166,7 +174,9 @@ async function loadFiles() {
         </div>
     `;
 
+
     files = [];
+
 
     try {
 
@@ -179,38 +189,40 @@ async function loadFiles() {
             Remove hidden files.
         */
 
-        files = files.filter(file => {
+        files =
+            files.filter(file => {
 
-            const fileName =
-                file.path
-                    .split("/")
-                    .pop()
-                    .toLowerCase();
+                const fileName =
+                    file.path
+                        .split("/")
+                        .pop()
+                        .toLowerCase();
 
-            return !HIDDEN_FILES.some(
-                hidden =>
-                    hidden.toLowerCase() === fileName
-            );
 
-        });
+                return !HIDDEN_FILES.some(
+                    hidden =>
+                        hidden.toLowerCase() ===
+                        fileName
+                );
+
+            });
 
 
         /*
-            Sort paths.
+            Sort files.
         */
 
-        files.sort((a, b) => {
-
-            return a.path.localeCompare(
-                b.path,
-                undefined,
-                {
-                    numeric: true,
-                    sensitivity: "base"
-                }
-            );
-
-        });
+        files.sort(
+            (a, b) =>
+                a.path.localeCompare(
+                    b.path,
+                    undefined,
+                    {
+                        numeric: true,
+                        sensitivity: "base"
+                    }
+                )
+        );
 
 
         /*
@@ -220,10 +232,6 @@ async function loadFiles() {
         buildFileTree();
 
 
-        /*
-            No files.
-        */
-
         if (files.length === 0) {
 
             fileList.innerHTML = `
@@ -232,8 +240,10 @@ async function loadFiles() {
                 </div>
             `;
 
+
             statusText.textContent =
                 "No files found";
+
 
             return;
         }
@@ -248,6 +258,7 @@ async function loadFiles() {
 
         console.error(error);
 
+
         fileList.innerHTML = `
             <div class="error">
                 Could not load GitHub files.
@@ -257,8 +268,10 @@ async function loadFiles() {
             </div>
         `;
 
+
         statusText.textContent =
             "Error loading files";
+
     }
 }
 
@@ -297,7 +310,7 @@ async function scanDirectory(path) {
 
 
         /*
-            DIRECTORY
+            FOLDER
         */
 
         else if (item.type === "dir") {
@@ -323,10 +336,6 @@ function buildFileTree() {
     fileList.innerHTML = "";
 
 
-    /*
-        Virtual root.
-    */
-
     const root = {
 
         folders: {},
@@ -345,13 +354,10 @@ function buildFileTree() {
         const parts =
             file.path.split("/");
 
+
         let current =
             root;
 
-
-        /*
-            Process folders.
-        */
 
         for (
             let i = 0;
@@ -384,18 +390,10 @@ function buildFileTree() {
         }
 
 
-        /*
-            Add file.
-        */
-
         current.files.push(file);
 
     }
 
-
-    /*
-        Render tree.
-    */
 
     renderTree(
         root,
@@ -417,10 +415,6 @@ function renderTree(
     depth
 ) {
 
-    /*
-        Get folders.
-    */
-
     const folders =
         Object.keys(
             node.folders
@@ -436,10 +430,6 @@ function renderTree(
                 )
         );
 
-
-    /*
-        Get files.
-    */
 
     const sortedFiles =
         [...node.files].sort(
@@ -469,14 +459,11 @@ function renderTree(
             node.folders[folderName];
 
 
-        /*
-            Folder wrapper.
-        */
-
         const folderWrapper =
             document.createElement(
                 "div"
             );
+
 
         folderWrapper.className =
             "folder-wrapper";
@@ -491,8 +478,10 @@ function renderTree(
                 "button"
             );
 
+
         folderButton.className =
             "folder-item";
+
 
         folderButton.style.paddingLeft =
             `${10 + depth * 18}px`;
@@ -507,8 +496,10 @@ function renderTree(
                 "span"
             );
 
+
         arrow.className =
             "folder-arrow";
+
 
         arrow.textContent =
             "▶";
@@ -523,8 +514,10 @@ function renderTree(
                 "span"
             );
 
+
         icon.className =
             "folder-icon";
+
 
         icon.textContent =
             "📁";
@@ -539,24 +532,24 @@ function renderTree(
                 "span"
             );
 
+
         name.className =
             "folder-name";
+
 
         name.textContent =
             folderName;
 
 
-        /*
-            Build folder button.
-        */
-
         folderButton.appendChild(
             arrow
         );
 
+
         folderButton.appendChild(
             icon
         );
+
 
         folderButton.appendChild(
             name
@@ -572,15 +565,17 @@ function renderTree(
                 "div"
             );
 
+
         children.className =
             "folder-children";
+
 
         children.style.display =
             "none";
 
 
         /*
-            Folder click.
+            Open / close folder.
         */
 
         folderButton.addEventListener(
@@ -599,6 +594,7 @@ function renderTree(
                         "open"
                     );
 
+
                     children.style.display =
                         "none";
 
@@ -610,6 +606,7 @@ function renderTree(
                         "open"
                     );
 
+
                     children.style.display =
                         "block";
 
@@ -619,17 +616,15 @@ function renderTree(
         );
 
 
-        /*
-            Add folder.
-        */
-
         folderWrapper.appendChild(
             folderButton
         );
 
+
         folderWrapper.appendChild(
             children
         );
+
 
         container.appendChild(
             folderWrapper
@@ -637,7 +632,7 @@ function renderTree(
 
 
         /*
-            Render contents.
+            Render folder contents.
         */
 
         renderTree(
@@ -664,16 +659,17 @@ function renderTree(
                 "button"
             );
 
+
         button.className =
             "file-item";
+
 
         button.style.paddingLeft =
             `${30 + depth * 18}px`;
 
 
         /*
-            IMPORTANT:
-            Store path so active file highlighting works.
+            Store path.
         */
 
         button.dataset.path =
@@ -689,8 +685,10 @@ function renderTree(
                 "span"
             );
 
+
         icon.className =
             "file-icon";
+
 
         icon.textContent =
             getFileIcon(file.name);
@@ -705,29 +703,24 @@ function renderTree(
                 "span"
             );
 
+
         name.className =
             "file-name";
+
 
         name.textContent =
             file.name;
 
 
-        /*
-            Build button.
-        */
-
         button.appendChild(
             icon
         );
+
 
         button.appendChild(
             name
         );
 
-
-        /*
-            Tooltip.
-        */
 
         button.title =
             file.path;
@@ -739,7 +732,11 @@ function renderTree(
 
         button.addEventListener(
             "click",
-            () => openFile(file)
+            () => {
+
+                openFile(file);
+
+            }
         );
 
 
@@ -863,13 +860,6 @@ async function openFile(file) {
             "Loading...";
 
 
-        /*
-            Hide image preview first.
-        */
-
-        hideImagePreview();
-
-
         selectedFile =
             file;
 
@@ -883,45 +873,15 @@ async function openFile(file) {
 
         /*
             ====================================================
-            IMAGE FILE
+            ONLY SHOW IMAGE WHEN AN IMAGE FILE IS CLICKED
             ====================================================
         */
 
-        if (isImageFile(file.name)) {
+        if (
+            isImageFile(file.name)
+        ) {
 
-            showImagePreview(file);
-
-
-            /*
-                Images are not loaded into textarea.
-            */
-
-            codeEditor.value =
-                "";
-
-            codeEditor.disabled =
-                true;
-
-
-            originalCode =
-                "";
-
-
-            copyButton.disabled =
-                true;
-
-            resetButton.disabled =
-                true;
-
-
-            updateLineNumbers();
-
-            updateCursorPosition();
-
-
-            statusText.textContent =
-                "Image preview";
-
+            showImage(file);
 
             return;
         }
@@ -929,9 +889,12 @@ async function openFile(file) {
 
         /*
             ====================================================
-            TEXT / CODE FILE
+            NORMAL CODE / TEXT FILE
             ====================================================
         */
+
+        hideImage();
+
 
         const response =
             await fetch(
@@ -948,10 +911,6 @@ async function openFile(file) {
         }
 
 
-        /*
-            Read as plain text.
-        */
-
         const code =
             await response.text();
 
@@ -961,7 +920,8 @@ async function openFile(file) {
 
 
         /*
-            Load local edits if available.
+            Load locally edited version
+            if one exists.
         */
 
         const savedCode =
@@ -985,6 +945,10 @@ async function openFile(file) {
         }
 
 
+        /*
+            Enable editor.
+        */
+
         codeEditor.disabled =
             false;
 
@@ -1002,16 +966,6 @@ async function openFile(file) {
         updateCursorPosition();
 
 
-        /*
-            Save current version locally.
-        */
-
-        localStorage.setItem(
-            `code-editor-${file.path}`,
-            codeEditor.value
-        );
-
-
         statusText.textContent =
             "Loaded";
 
@@ -1020,6 +974,7 @@ async function openFile(file) {
     catch (error) {
 
         console.error(error);
+
 
         statusText.textContent =
             "Could not load file";
@@ -1030,56 +985,27 @@ async function openFile(file) {
 
 /*
     ============================================================
-    IMAGE PREVIEW
+    SHOW IMAGE
     ============================================================
 */
 
-function showImagePreview(file) {
+function showImage(file) {
 
     /*
-        Make preview visible.
+        IMPORTANT:
+        The image preview is hidden by default.
+        It becomes visible ONLY when an image file
+        is clicked.
     */
 
-    imagePreview.hidden =
-        false;
+    if (!imagePreview) {
 
+        console.error(
+            "imagePreview element is missing from HTML."
+        );
 
-    /*
-        Show file name.
-    */
-
-    imageFileName.textContent =
-        file.path;
-
-
-    /*
-        Use GitHub's direct image URL.
-        
-        This means:
-        
-        images/image.png
-        
-        will be loaded directly as an image.
-    */
-
-    previewImage.src =
-        file.download_url;
-
-
-    previewImage.alt =
-        file.name;
-
-
-    /*
-        Direct image link.
-    */
-
-    imageRawLink.href =
-        file.download_url;
-
-
-    imageRawLink.textContent =
-        "Open image";
+        return;
+    }
 
 
     /*
@@ -1095,7 +1021,72 @@ function showImagePreview(file) {
 
 
     /*
-        Image loading error.
+        Disable code buttons.
+    */
+
+    codeEditor.disabled =
+        true;
+
+
+    copyButton.disabled =
+        true;
+
+
+    resetButton.disabled =
+        true;
+
+
+    /*
+        Show image preview.
+    */
+
+    imagePreview.hidden =
+        false;
+
+
+    imageFileName.textContent =
+        file.path;
+
+
+    /*
+        THIS IS THE IMPORTANT PART.
+
+        GitHub's download URL points directly
+        to the image stored in your repository.
+
+        Example:
+
+        images/photo.png
+
+        becomes an actual browser image.
+    */
+
+    previewImage.src =
+        file.download_url;
+
+
+    previewImage.alt =
+        file.name;
+
+
+    /*
+        Open original image link.
+    */
+
+    imageRawLink.href =
+        file.download_url;
+
+
+    /*
+        Status.
+    */
+
+    statusText.textContent =
+        "Image preview";
+
+
+    /*
+        Handle failed image.
     */
 
     previewImage.onerror =
@@ -1110,20 +1101,34 @@ function showImagePreview(file) {
 
 /*
     ============================================================
-    HIDE IMAGE PREVIEW
+    HIDE IMAGE
     ============================================================
 */
 
-function hideImagePreview() {
+function hideImage() {
+
+    /*
+        If there is no image preview element,
+        simply return.
+    */
 
     if (!imagePreview) {
+
         return;
     }
 
 
+    /*
+        Hide it completely.
+    */
+
     imagePreview.hidden =
         true;
 
+
+    /*
+        Remove old image.
+    */
 
     previewImage.removeAttribute(
         "src"
@@ -1135,7 +1140,7 @@ function hideImagePreview() {
 
 
     /*
-        Show code editor again.
+        Bring code editor back.
     */
 
     codeEditor.style.display =
@@ -1144,6 +1149,15 @@ function hideImagePreview() {
 
     lineNumbers.style.display =
         "";
+
+
+    /*
+        Code editor can be enabled
+        again for normal files.
+    */
+
+    codeEditor.disabled =
+        false;
 }
 
 
@@ -1196,17 +1210,11 @@ copyButton.addEventListener(
     "click",
     async () => {
 
-        /*
-            Don't copy image files.
-        */
-
         if (
-            codeEditor.disabled ||
-            !selectedFile
+            codeEditor.disabled
         ) {
 
             return;
-
         }
 
 
@@ -1262,17 +1270,12 @@ resetButton.addEventListener(
     "click",
     () => {
 
-        /*
-            Images cannot be reset.
-        */
-
         if (
             !selectedFile ||
             isImageFile(selectedFile.name)
         ) {
 
             return;
-
         }
 
 
@@ -1307,23 +1310,12 @@ codeEditor.addEventListener(
     "input",
     () => {
 
-        if (!selectedFile) {
-
-            return;
-
-        }
-
-
-        /*
-            Don't save image files.
-        */
-
         if (
+            !selectedFile ||
             isImageFile(selectedFile.name)
         ) {
 
             return;
-
         }
 
 
@@ -1358,7 +1350,6 @@ codeEditor.addEventListener(
         ) {
 
             return;
-
         }
 
 
@@ -1418,8 +1409,7 @@ function updateLineNumbers() {
             .length;
 
 
-    let numbers =
-        "";
+    let numbers = "";
 
 
     for (
@@ -1496,29 +1486,17 @@ function updateCursorPosition() {
 }
 
 
-/*
-    Update cursor when typing.
-*/
-
 codeEditor.addEventListener(
     "keyup",
     updateCursorPosition
 );
 
 
-/*
-    Update cursor when clicking.
-*/
-
 codeEditor.addEventListener(
     "click",
     updateCursorPosition
 );
 
-
-/*
-    Update cursor when selecting.
-*/
 
 codeEditor.addEventListener(
     "select",
@@ -1536,6 +1514,14 @@ refreshButton.addEventListener(
     "click",
     () => {
 
+        /*
+            When refreshing, hide any
+            currently displayed image.
+        */
+
+        hideImage();
+
+
         loadFiles();
 
     }
@@ -1544,7 +1530,7 @@ refreshButton.addEventListener(
 
 /*
     ============================================================
-    START APPLICATION
+    START
     ============================================================
 */
 
