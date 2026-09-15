@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
+
     <meta charset="UTF-8">
 
     <meta
@@ -10,67 +12,175 @@
 
     <title>Code Viewer</title>
 
-    <link rel="stylesheet" href="style.css">
+    <link
+        rel="stylesheet"
+        href="style.css"
+    >
+
 </head>
+
 
 <body>
 
     <div class="app">
 
-        <!-- Sidebar -->
+
+        <!-- ==================================================
+             SIDEBAR
+             ================================================== -->
+
         <aside class="sidebar">
 
             <div class="sidebar-header">
-                <h1>Code Files</h1>
-                <button id="refreshButton" title="Refresh files">
+
+                <h1>
+                    Code Files
+                </h1>
+
+
+                <button
+                    id="refreshButton"
+                    title="Refresh files"
+                >
                     ↻
                 </button>
+
             </div>
 
-            <div id="fileList" class="file-list">
+
+            <div
+                id="fileList"
+                class="file-list"
+            >
+
                 <div class="loading">
                     Loading files...
                 </div>
+
             </div>
 
         </aside>
 
 
-        <!-- Main area -->
+        <!-- ==================================================
+             MAIN AREA
+             ================================================== -->
+
         <main class="main">
+
+
+            <!-- ==================================================
+                 TOP BAR
+                 ================================================== -->
 
             <header class="topbar">
 
+
                 <div class="file-info">
+
                     <span id="currentFile">
                         Select a file
                     </span>
+
                 </div>
+
 
                 <div class="actions">
 
-                    <button id="copyButton" disabled>
+
+                    <!-- ==================================================
+                         WEBSITE ZOOM
+                         ================================================== -->
+
+                    <div
+                        class="zoom-controls"
+                        aria-label="Website zoom controls"
+                    >
+
+                        <button
+                            id="websiteZoomOut"
+                            type="button"
+                            title="Zoom out"
+                        >
+                            −
+                        </button>
+
+
+                        <button
+                            id="websiteZoomReset"
+                            type="button"
+                            title="Reset website zoom"
+                        >
+                            100%
+                        </button>
+
+
+                        <button
+                            id="websiteZoomIn"
+                            type="button"
+                            title="Zoom in"
+                        >
+                            +
+                        </button>
+
+                    </div>
+
+
+                    <!-- ==================================================
+                         COPY
+                         ================================================== -->
+
+                    <button
+                        id="copyButton"
+                        type="button"
+                        disabled
+                    >
                         Copy
                     </button>
 
-                    <button id="resetButton" disabled>
+
+                    <!-- ==================================================
+                         RESET
+                         ================================================== -->
+
+                    <button
+                        id="resetButton"
+                        type="button"
+                        disabled
+                    >
                         Reset
                     </button>
+
 
                 </div>
 
             </header>
 
 
+            <!-- ==================================================
+                 EDITOR
+                 ================================================== -->
+
             <section class="editor-container">
 
+
                 <div class="editor-wrapper">
+
+
+                    <!-- ==================================================
+                         LINE NUMBERS
+                         ================================================== -->
 
                     <div
                         id="lineNumbers"
                         class="line-numbers"
                         aria-hidden="true"
                     ></div>
+
+
+                    <!-- ==================================================
+                         CODE EDITOR
+                         ================================================== -->
 
                     <textarea
                         id="codeEditor"
@@ -82,44 +192,152 @@
                         wrap="off"
                     ></textarea>
 
-                    <div id="imagePreview" class="image-preview" hidden>
-                        <div class="image-preview-toolbar">
-                            <span id="imageFileName">Image</span>
-                            <a
-                                id="imageRawLink"
-                                href="#"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                            >Open image</a>
+
+                    <!-- ==================================================
+                         IMAGE PREVIEW
+
+                         IMPORTANT:
+                         hidden means this is NOT shown when
+                         the website first loads.
+
+                         JavaScript only removes hidden when
+                         an image file is clicked.
+                         ================================================== -->
+
+                    <div
+                        id="imagePreview"
+                        class="image-preview"
+                        hidden
+                    >
+
+
+                        <!-- ==================================================
+                             IMAGE TOOLBAR
+                             ================================================== -->
+
+                        <div
+                            class="image-preview-toolbar"
+                        >
+
+
+                            <span
+                                id="imageFileName"
+                            >
+                                Image
+                            </span>
+
+
+                            <div
+                                class="image-zoom-controls"
+                                aria-label="Image zoom controls"
+                            >
+
+
+                                <!-- IMAGE ZOOM OUT -->
+
+                                <button
+                                    id="imageZoomOut"
+                                    type="button"
+                                    title="Zoom image out"
+                                >
+                                    −
+                                </button>
+
+
+                                <!-- IMAGE ZOOM RESET -->
+
+                                <button
+                                    id="imageZoomReset"
+                                    type="button"
+                                    title="Reset image zoom"
+                                >
+                                    100%
+                                </button>
+
+
+                                <!-- IMAGE ZOOM IN -->
+
+                                <button
+                                    id="imageZoomIn"
+                                    type="button"
+                                    title="Zoom image in"
+                                >
+                                    +
+                                </button>
+
+
+                                <!-- OPEN ORIGINAL IMAGE -->
+
+                                <a
+                                    id="imageRawLink"
+                                    href="#"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                >
+                                    Open image
+                                </a>
+
+
+                            </div>
+
                         </div>
-                        <div class="image-preview-stage">
-                            <img id="previewImage" alt="Selected image preview">
+
+
+                        <!-- ==================================================
+                             IMAGE DISPLAY AREA
+                             ================================================== -->
+
+                        <div
+                            class="image-preview-stage"
+                        >
+
+                            <img
+                                id="previewImage"
+                                alt="Selected image preview"
+                            >
+
                         </div>
+
+
                     </div>
+
 
                 </div>
 
             </section>
 
 
+            <!-- ==================================================
+                 STATUS BAR
+                 ================================================== -->
+
             <footer class="statusbar">
+
 
                 <span id="statusText">
                     Ready
                 </span>
 
+
                 <span id="cursorPosition">
                     Ln 1, Col 1
                 </span>
 
+
             </footer>
+
 
         </main>
 
     </div>
 
 
+    <!-- ==================================================
+         JAVASCRIPT
+         ================================================== -->
+
     <script src="script.js"></script>
 
 </body>
+
 </html>
