@@ -717,3 +717,236 @@ body {
         font-size: 12px;
     }
 }
+
+/* ============================================================
+   WEBSITE + IMAGE ZOOM CONTROLS
+   ============================================================ */
+
+.zoom-controls,
+.image-zoom-controls {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+
+.zoom-controls button,
+.image-zoom-controls button {
+    min-width: 32px;
+    height: 30px;
+
+    padding: 4px 8px;
+
+    border: 1px solid #30363d;
+    border-radius: 6px;
+
+    background: #21262d;
+    color: #e6edf3;
+
+    font-size: 13px;
+
+    cursor: pointer;
+}
+
+
+.zoom-controls button:hover,
+.image-zoom-controls button:hover {
+    background: #30363d;
+}
+
+
+#websiteZoomReset,
+#imageZoomReset {
+    min-width: 52px;
+
+    font-family:
+        "SFMono-Regular",
+        Consolas,
+        "Liberation Mono",
+        monospace;
+}
+
+
+/* ============================================================
+   IMAGE PREVIEW
+   ============================================================ */
+
+/*
+    IMPORTANT:
+    The image preview stays completely hidden until
+    JavaScript opens an image file.
+*/
+
+.image-preview[hidden] {
+    display: none !important;
+}
+
+
+.image-preview {
+    flex: 1;
+
+    min-width: 0;
+    min-height: 0;
+
+    display: flex;
+    flex-direction: column;
+
+    overflow: hidden;
+
+    background: #0d1117;
+}
+
+
+.image-preview-toolbar {
+    min-height: 44px;
+
+    padding: 0 14px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 12px;
+
+    border-bottom: 1px solid #30363d;
+
+    background: #161b22;
+
+    color: #c9d1d9;
+
+    font-size: 13px;
+}
+
+
+.image-preview-toolbar a {
+    color: #58a6ff;
+
+    text-decoration: none;
+
+    white-space: nowrap;
+}
+
+
+.image-preview-toolbar a:hover {
+    text-decoration: underline;
+}
+
+
+/*
+    Image area.
+*/
+
+.image-preview-stage {
+    flex: 1;
+
+    min-height: 0;
+
+    padding: 24px;
+
+    overflow: auto;
+
+    display: flex;
+
+    align-items: flex-start;
+    justify-content: flex-start;
+
+    background:
+        linear-gradient(
+            45deg,
+            #161b22 25%,
+            transparent 25%
+        ),
+        linear-gradient(
+            -45deg,
+            #161b22 25%,
+            transparent 25%
+        ),
+        linear-gradient(
+            45deg,
+            transparent 75%,
+            #161b22 75%
+        ),
+        linear-gradient(
+            -45deg,
+            transparent 75%,
+            #161b22 75%
+        );
+
+    background-size: 24px 24px;
+
+    background-position:
+        0 0,
+        0 12px,
+        12px -12px,
+        -12px 0;
+}
+
+
+/*
+    Actual image.
+
+    max-width/max-height are removed so the
+    JavaScript zoom can make the image larger.
+*/
+
+#previewImage {
+    display: block;
+
+    max-width: none;
+    max-height: none;
+
+    width: auto;
+    height: auto;
+
+    object-fit: contain;
+
+    transform-origin: top left;
+
+    transition:
+        transform 0.12s ease;
+
+    cursor: zoom-in;
+
+    border-radius: 6px;
+
+    box-shadow:
+        0 10px 35px
+        rgba(0, 0, 0, 0.35);
+}
+
+
+/* ============================================================
+   MOBILE
+   ============================================================ */
+
+@media (max-width: 700px) {
+
+    .zoom-controls button,
+    .image-zoom-controls button {
+        min-width: 28px;
+
+        height: 28px;
+
+        padding: 3px 6px;
+    }
+
+
+    .zoom-controls {
+        gap: 2px;
+    }
+
+
+    .image-preview-stage {
+        padding: 12px;
+    }
+
+
+    .image-preview-toolbar {
+        min-height: 40px;
+
+        padding: 0 10px;
+
+        font-size: 12px;
+    }
+
+}
