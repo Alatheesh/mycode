@@ -16,51 +16,55 @@ const ROOT_FOLDER = "";
     ============================================================
 */
 
-const fileList =
-    document.getElementById("fileList");
-
-const codeEditor =
-    document.getElementById("codeEditor");
-
-const lineNumbers =
-    document.getElementById("lineNumbers");
-
-const currentFile =
-    document.getElementById("currentFile");
-
-const copyButton =
-    document.getElementById("copyButton");
-
-const resetButton =
-    document.getElementById("resetButton");
-
-const refreshButton =
-    document.getElementById("refreshButton");
-
-const statusText =
-    document.getElementById("statusText");
-
-const cursorPosition =
-    document.getElementById("cursorPosition");
+const fileList = document.getElementById("fileList");
+const codeEditor = document.getElementById("codeEditor");
+const lineNumbers = document.getElementById("lineNumbers");
+const currentFile = document.getElementById("currentFile");
+const copyButton = document.getElementById("copyButton");
+const resetButton = document.getElementById("resetButton");
+const refreshButton = document.getElementById("refreshButton");
+const statusText = document.getElementById("statusText");
+const cursorPosition = document.getElementById("cursorPosition");
 
 
 /*
-    ============================================================
-    IMAGE PREVIEW
-    ============================================================
+    Image preview elements.
+    These only work when your HTML contains the image
+    preview section.
 */
 
-const imagePreview =
-    document.getElementById("imagePreview");
+const imagePreview = document.getElementById("imagePreview");
+const previewImage = document.getElementById("previewImage");
+const imageFileName = document.getElementById("imageFileName");
+const imageRawLink = document.getElementById("imageRawLink");
 
-const previewImage =
-    document.getElementById("previewImage");
 
-const imageFileName =
-    document.getElementById("imageFileName");
+/*
+    Website zoom controls.
+*/
 
-const imageRawLink =
-    document.getElementById("imageRawLink");
+const websiteZoomOut =
+    document.getElementById("websiteZoomOut");
+
+const websiteZoomReset =
+    document.getElementById("websiteZoomReset");
+
+const websiteZoomIn =
+    document.getElementById("websiteZoomIn");
+
+
+/*
+    Image zoom controls.
+*/
+
+const imageZoomOut =
+    document.getElementById("imageZoomOut");
+
+const imageZoomReset =
+    document.getElementById("imageZoomReset");
+
+const imageZoomIn =
+    document.getElementById("imageZoomIn");
 
 
 /*
@@ -74,6 +78,26 @@ let files = [];
 let selectedFile = null;
 
 let originalCode = "";
+
+
+/*
+    ============================================================
+    WEBSITE ZOOM STATE
+    ============================================================
+*/
+
+let websiteZoom =
+    Number(
+        localStorage.getItem("website-zoom")
+    ) || 100;
+
+
+/*
+    Image zoom is reset to 100% whenever
+    a new image is opened.
+*/
+
+let imageZoom = 100;
 
 
 /*
@@ -131,6 +155,115 @@ function isImageFile(fileName) {
 
 /*
     ============================================================
+    WEBSITE ZOOM
+    ============================================================
+*/
+
+function setWebsiteZoom(value) {
+
+    /*
+        Keep website zoom between 70% and 150%.
+    */
+
+    websiteZoom =
+        Math.min(
+            150,
+            Math.max(
+                70,
+                value
+            )
+        );
+
+
+    /*
+        Zoom the complete website.
+    */
+
+    document.body.style.zoom =
+        `${websiteZoom}%`;
+
+
+    /*
+        Update button text.
+    */
+
+    if (websiteZoomReset) {
+
+        websiteZoomReset.textContent =
+            `${websiteZoom}%`;
+
+    }
+
+
+    /*
+        Remember the zoom.
+    */
+
+    localStorage.setItem(
+        "website-zoom",
+        websiteZoom
+    );
+}
+
+
+/*
+    ============================================================
+    IMAGE ZOOM
+    ============================================================
+*/
+
+function setImageZoom(value) {
+
+    /*
+        Keep image zoom between 25% and 400%.
+    */
+
+    imageZoom =
+        Math.min(
+            400,
+            Math.max(
+                25,
+                value
+            )
+        );
+
+
+    /*
+        If image exists, scale it.
+    */
+
+    if (previewImage) {
+
+        previewImage.style.transform =
+            `scale(${imageZoom / 100})`;
+
+
+        /*
+            Change mouse cursor.
+        */
+
+        previewImage.style.cursor =
+            imageZoom > 100
+                ? "zoom-out"
+                : "zoom-in";
+    }
+
+
+    /*
+        Update percentage button.
+    */
+
+    if (imageZoomReset) {
+
+        imageZoomReset.textContent =
+            `${imageZoom}%`;
+
+    }
+}
+
+
+/*
+    ============================================================
     GITHUB API
     ============================================================
 */
@@ -167,6 +300,13 @@ async function getRepositoryFiles(path = "") {
 */
 
 async function loadFiles() {
+
+    /*
+        Hide any image that may currently be open.
+    */
+
+    hideImage();
+
 
     fileList.innerHTML = `
         <div class="loading">
@@ -231,6 +371,10 @@ async function loadFiles() {
 
         buildFileTree();
 
+
+        /*
+            No files.
+        */
 
         if (files.length === 0) {
 
@@ -310,7 +454,7 @@ async function scanDirectory(path) {
 
 
         /*
-            FOLDER
+            DIRECTORY
         */
 
         else if (item.type === "dir") {
@@ -415,6 +559,10 @@ function renderTree(
     depth
 ) {
 
+    /*
+        Sort folders.
+    */
+
     const folders =
         Object.keys(
             node.folders
@@ -430,6 +578,10 @@ function renderTree(
                 )
         );
 
+
+    /*
+        Sort files.
+    */
 
     const sortedFiles =
         [...node.files].sort(
@@ -632,7 +784,7 @@ function renderTree(
 
 
         /*
-            Render folder contents.
+            Render contents.
         */
 
         renderTree(
@@ -727,7 +879,7 @@ function renderTree(
 
 
         /*
-            Open file.
+            Open selected file.
         */
 
         button.addEventListener(
@@ -766,11 +918,9 @@ function getFileIcon(fileName) {
     const icons = {
 
         js: "🟨",
-
         jsx: "⚛️",
 
         ts: "🔷",
-
         tsx: "⚛️",
 
         py: "🐍",
@@ -778,25 +928,20 @@ function getFileIcon(fileName) {
         java: "☕",
 
         c: "🔵",
-
         cpp: "🔵",
 
         h: "🔵",
-
         hpp: "🔵",
 
         ino: "🔌",
 
         html: "🌐",
-
         htm: "🌐",
 
         css: "🎨",
-
         scss: "🎨",
 
         json: "🧾",
-
         xml: "🧾",
 
         php: "🐘",
@@ -814,29 +959,19 @@ function getFileIcon(fileName) {
         sql: "🗄️",
 
         sh: "💻",
-
         bat: "💻",
 
         md: "📝",
-
         txt: "📄",
 
         png: "🖼️",
-
         jpg: "🖼️",
-
         jpeg: "🖼️",
-
         gif: "🖼️",
-
         webp: "🖼️",
-
         svg: "🖼️",
-
         bmp: "🖼️",
-
         ico: "🖼️",
-
         avif: "🖼️"
 
     };
@@ -873,7 +1008,7 @@ async function openFile(file) {
 
         /*
             ====================================================
-            ONLY SHOW IMAGE WHEN AN IMAGE FILE IS CLICKED
+            IMAGE FILE
             ====================================================
         */
 
@@ -920,8 +1055,7 @@ async function openFile(file) {
 
 
         /*
-            Load locally edited version
-            if one exists.
+            Load local edited version.
         */
 
         const savedCode =
@@ -992,16 +1126,16 @@ async function openFile(file) {
 function showImage(file) {
 
     /*
-        IMPORTANT:
-        The image preview is hidden by default.
-        It becomes visible ONLY when an image file
-        is clicked.
+        Safety check.
     */
 
-    if (!imagePreview) {
+    if (
+        !imagePreview ||
+        !previewImage
+    ) {
 
         console.error(
-            "imagePreview element is missing from HTML."
+            "Image preview elements are missing from HTML."
         );
 
         return;
@@ -1037,28 +1171,35 @@ function showImage(file) {
 
 
     /*
-        Show image preview.
+        ONLY NOW show the image area.
     */
 
     imagePreview.hidden =
         false;
 
 
-    imageFileName.textContent =
-        file.path;
+    /*
+        Every newly selected image
+        starts at 100%.
+    */
+
+    setImageZoom(100);
 
 
     /*
-        THIS IS THE IMPORTANT PART.
+        Show file name.
+    */
 
-        GitHub's download URL points directly
-        to the image stored in your repository.
+    if (imageFileName) {
 
-        Example:
+        imageFileName.textContent =
+            file.path;
 
-        images/photo.png
+    }
 
-        becomes an actual browser image.
+
+    /*
+        Load image directly from GitHub.
     */
 
     previewImage.src =
@@ -1070,23 +1211,23 @@ function showImage(file) {
 
 
     /*
-        Open original image link.
+        Open image link.
     */
 
-    imageRawLink.href =
-        file.download_url;
+    if (imageRawLink) {
 
+        imageRawLink.href =
+            file.download_url;
 
-    /*
-        Status.
-    */
+    }
+
 
     statusText.textContent =
         "Image preview";
 
 
     /*
-        Handle failed image.
+        Image error.
     */
 
     previewImage.onerror =
@@ -1108,18 +1249,24 @@ function showImage(file) {
 function hideImage() {
 
     /*
-        If there is no image preview element,
-        simply return.
+        If image elements don't exist,
+        simply restore editor.
     */
 
     if (!imagePreview) {
+
+        codeEditor.style.display =
+            "";
+
+        lineNumbers.style.display =
+            "";
 
         return;
     }
 
 
     /*
-        Hide it completely.
+        Completely hide image preview.
     */
 
     imagePreview.hidden =
@@ -1127,16 +1274,47 @@ function hideImage() {
 
 
     /*
-        Remove old image.
+        Remove previous image.
     */
 
-    previewImage.removeAttribute(
-        "src"
-    );
+    if (previewImage) {
+
+        previewImage.removeAttribute(
+            "src"
+        );
+
+        previewImage.style.transform =
+            "scale(1)";
+
+    }
 
 
-    imageRawLink.href =
-        "#";
+    /*
+        Reset image zoom.
+    */
+
+    imageZoom =
+        100;
+
+
+    if (imageZoomReset) {
+
+        imageZoomReset.textContent =
+            "100%";
+
+    }
+
+
+    /*
+        Reset image link.
+    */
+
+    if (imageRawLink) {
+
+        imageRawLink.href =
+            "#";
+
+    }
 
 
     /*
@@ -1150,11 +1328,6 @@ function hideImage() {
     lineNumbers.style.display =
         "";
 
-
-    /*
-        Code editor can be enabled
-        again for normal files.
-    */
 
     codeEditor.disabled =
         false;
@@ -1506,6 +1679,300 @@ codeEditor.addEventListener(
 
 /*
     ============================================================
+    WEBSITE ZOOM BUTTONS
+    ============================================================
+*/
+
+if (websiteZoomOut) {
+
+    websiteZoomOut.addEventListener(
+        "click",
+        () => {
+
+            setWebsiteZoom(
+                websiteZoom - 10
+            );
+
+        }
+    );
+
+}
+
+
+if (websiteZoomIn) {
+
+    websiteZoomIn.addEventListener(
+        "click",
+        () => {
+
+            setWebsiteZoom(
+                websiteZoom + 10
+            );
+
+        }
+    );
+
+}
+
+
+if (websiteZoomReset) {
+
+    websiteZoomReset.addEventListener(
+        "click",
+        () => {
+
+            setWebsiteZoom(100);
+
+        }
+    );
+
+}
+
+
+/*
+    ============================================================
+    IMAGE ZOOM BUTTONS
+    ============================================================
+*/
+
+if (imageZoomOut) {
+
+    imageZoomOut.addEventListener(
+        "click",
+        event => {
+
+            /*
+                Prevent toolbar click from
+                affecting anything else.
+            */
+
+            event.stopPropagation();
+
+
+            setImageZoom(
+                imageZoom - 25
+            );
+
+        }
+    );
+
+}
+
+
+if (imageZoomIn) {
+
+    imageZoomIn.addEventListener(
+        "click",
+        event => {
+
+            event.stopPropagation();
+
+
+            setImageZoom(
+                imageZoom + 25
+            );
+
+        }
+    );
+
+}
+
+
+if (imageZoomReset) {
+
+    imageZoomReset.addEventListener(
+        "click",
+        event => {
+
+            event.stopPropagation();
+
+
+            setImageZoom(100);
+
+        }
+    );
+
+}
+
+
+/*
+    ============================================================
+    IMAGE MOUSE-WHEEL ZOOM
+    ============================================================
+*/
+
+if (imagePreview) {
+
+    imagePreview.addEventListener(
+        "wheel",
+        event => {
+
+            /*
+                Don't do anything if image isn't open.
+            */
+
+            if (
+                imagePreview.hidden
+            ) {
+
+                return;
+            }
+
+
+            /*
+                Only zoom when mouse is
+                over the image preview.
+            */
+
+            event.preventDefault();
+
+
+            const step =
+                event.ctrlKey
+                    ? 10
+                    : 25;
+
+
+            if (
+                event.deltaY < 0
+            ) {
+
+                setImageZoom(
+                    imageZoom + step
+                );
+
+            }
+
+            else {
+
+                setImageZoom(
+                    imageZoom - step
+                );
+
+            }
+
+        },
+        {
+            passive: false
+        }
+    );
+
+}
+
+
+/*
+    ============================================================
+    IMAGE CLICK ZOOM
+    ============================================================
+*/
+
+if (previewImage) {
+
+    previewImage.addEventListener(
+        "click",
+        event => {
+
+            event.stopPropagation();
+
+
+            /*
+                100% -> 200%
+                200% -> 100%
+            */
+
+            if (
+                imageZoom === 100
+            ) {
+
+                setImageZoom(200);
+
+            }
+
+            else {
+
+                setImageZoom(100);
+
+            }
+
+        }
+    );
+
+}
+
+
+/*
+    ============================================================
+    KEYBOARD SHORTCUTS
+    ============================================================
+*/
+
+document.addEventListener(
+    "keydown",
+    event => {
+
+        /*
+            Ctrl + + = website zoom in
+        */
+
+        if (
+            event.ctrlKey &&
+            (
+                event.key === "+" ||
+                event.key === "="
+            )
+        ) {
+
+            event.preventDefault();
+
+
+            setWebsiteZoom(
+                websiteZoom + 10
+            );
+
+        }
+
+
+        /*
+            Ctrl + - = website zoom out
+        */
+
+        if (
+            event.ctrlKey &&
+            event.key === "-"
+        ) {
+
+            event.preventDefault();
+
+
+            setWebsiteZoom(
+                websiteZoom - 10
+            );
+
+        }
+
+
+        /*
+            Ctrl + 0 = website zoom reset
+        */
+
+        if (
+            event.ctrlKey &&
+            event.key === "0"
+        ) {
+
+            event.preventDefault();
+
+
+            setWebsiteZoom(100);
+
+        }
+
+    }
+);
+
+
+/*
+    ============================================================
     REFRESH
     ============================================================
 */
@@ -1514,18 +1981,37 @@ refreshButton.addEventListener(
     "click",
     () => {
 
-        /*
-            When refreshing, hide any
-            currently displayed image.
-        */
-
         hideImage();
 
+        selectedFile = null;
+
+        currentFile.textContent =
+            "Select a file";
+
+        copyButton.disabled =
+            true;
+
+        resetButton.disabled =
+            true;
 
         loadFiles();
 
     }
 );
+
+
+/*
+    ============================================================
+    INITIALIZE ZOOM
+    ============================================================
+*/
+
+setWebsiteZoom(
+    websiteZoom
+);
+
+
+setImageZoom(100);
 
 
 /*
